@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
-type FormErrors = Partial<Record<'email' | 'password', string>>;
+type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'confirmPassword', string>>;
 
 const containerVariants: Variants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.09, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
   },
 };
 
@@ -17,21 +17,41 @@ const fieldVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
 };
 
-export default function LoginPage() {
+function passwordStrength(password: string): { score: number; label: string } {
+  if (!password) return { score: 0, label: '' };
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 10) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/\d/.test(password) && /[^A-Za-z0-9]/.test(password)) score++;
+  const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+  return { score, label: labels[Math.max(0, score - 1)] ?? 'Weak' };
+}
+
+export default function RegisterPage() {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState('');
-  const [focused, setFocused] = useState<'email' | 'password' | null>(null);
+  const [focused, setFocused] = useState<'name' | 'email' | 'password' | 'confirmPassword' | null>(null);
+
+  const strength = passwordStrength(password);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
+    if (!name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
     if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -41,6 +61,11 @@ export default function LoginPage() {
       newErrors.password = 'Password is required';
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    }
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -54,14 +79,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1400));
-      if (rememberMe) {
-        localStorage.setItem('threadline_user', JSON.stringify({ email }));
-      } else {
-        localStorage.removeItem('threadline_user');
-      }
+      localStorage.setItem('threadline_user', JSON.stringify({ email, name }));
       navigate('/dashboard', { replace: true });
     } catch {
-      setSubmitError("We couldn't sign you in. Check your details and try again.");
+      setSubmitError("We couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,6 +94,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-canvas">
+      {/* Left — brand panel */}
       <div className="hidden lg:flex lg:w-[44%] relative bg-ink overflow-hidden">
         <StitchLine reduced={!!prefersReducedMotion} />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
@@ -93,11 +115,11 @@ export default function LoginPage() {
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas"
             >
-              Trust and
+              Cut your
               <br />
-              Technology
+              own pattern.
               <br />
-              at the same time.
+              Join us.
             </motion.h1>
             <motion.p
               initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
@@ -105,7 +127,7 @@ export default function LoginPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
             >
-              Sign in to track orders, revisit your fittings, and pick up your wishlist where you left it.
+              Create an account to save your measurements, follow orders, and build a wishlist that's yours.
             </motion.p>
           </div>
 
@@ -115,23 +137,24 @@ export default function LoginPage() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40"
           >
-            <span>Style No. 001</span>
+            <span>Style No. 002</span>
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
           </motion.div>
         </div>
       </div>
 
+      {/* Right — form panel */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-10">
         <motion.div {...rootMotionProps} variants={containerVariants} className="w-full max-w-sm">
           <motion.div variants={fieldVariants} className="mb-6 lg:hidden flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
-            <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Threadline</span>
+            <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Rocafella Finance</span>
           </motion.div>
 
           <motion.div variants={fieldVariants}>
-            <h2 className="font-serif text-3xl text-ink">Welcome back</h2>
-            <p className="mt-2 text-sm text-ink/50">Sign in to your account</p>
+            <h2 className="font-serif text-3xl text-ink">Create account</h2>
+            <p className="mt-2 text-sm text-ink/50">Sign up to get started</p>
           </motion.div>
 
           <AnimatePresence>
@@ -154,12 +177,27 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
             <motion.div variants={fieldVariants}>
               <FloatingField
+                id="name"
+                type="text"
+                label="Full name"
+                value={name}
+                onChange={setName}
+                icon={<User className="w-[18px] h-[18px]" />}
+                error={errors.name}
+                autoComplete="name"
+                focused={focused === 'name'}
+                onFocusChange={(f) => setFocused(f ? 'name' : null)}
+              />
+            </motion.div>
+
+            <motion.div variants={fieldVariants}>
+              <FloatingField
                 id="email"
                 type="email"
                 label="Email address"
                 value={email}
                 onChange={setEmail}
-                icon={<Mail className="w-4.5 h-4.5" />}
+                icon={<Mail className="w-[18px] h-[18px]" />}
                 error={errors.email}
                 autoComplete="email"
                 focused={focused === 'email'}
@@ -174,45 +212,58 @@ export default function LoginPage() {
                 label="Password"
                 value={password}
                 onChange={setPassword}
-                icon={<Lock className="w-4.5 h-4.5" />}
+                icon={<Lock className="w-[18px] h-[18px]" />}
                 error={errors.password}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 focused={focused === 'password'}
                 onFocusChange={(f) => setFocused(f ? 'password' : null)}
                 trailing={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="text-ink/35 hover:text-ink/70 transition-colors"
-                    tabIndex={-1}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={showPassword ? 'on' : 'off'}
-                        initial={{ opacity: 0, rotate: -8 }}
-                        animate={{ opacity: 1, rotate: 0 }}
-                        exit={{ opacity: 0, rotate: 8 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4.5 h-4.5" />
-                        ) : (
-                          <Eye className="w-4.5 h-4.5" />
-                        )}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
+                  <PasswordToggle show={showPassword} onToggle={() => setShowPassword((s) => !s)} />
                 }
               />
+              <AnimatePresence>
+                {password.length > 0 && !errors.password && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 h-1 rounded-full bg-line overflow-hidden">
+                        <motion.div
+                          className={`h-full ${
+                            strength.score <= 1 ? 'bg-clay' : strength.score === 2 ? 'bg-sand' : 'bg-moss'
+                          }`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(strength.score / 4) * 100}%` }}
+                          transition={{ duration: 0.25 }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-ink/40 w-10 text-right">{strength.label}</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
 
-            <motion.div variants={fieldVariants} className="flex items-center justify-between pt-1">
-              <Checkbox checked={rememberMe} onChange={setRememberMe} label="Remember me" />
-              <a href="#" className="text-sm text-ink/50 hover:text-clay transition-colors">
-                Forgot password?
-              </a>
+            <motion.div variants={fieldVariants}>
+              <FloatingField
+                id="confirmPassword"
+                type={showConfirm ? 'text' : 'password'}
+                label="Confirm password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                icon={<Lock className="w-[18px] h-[18px]" />}
+                error={errors.confirmPassword}
+                autoComplete="new-password"
+                focused={focused === 'confirmPassword'}
+                onFocusChange={(f) => setFocused(f ? 'confirmPassword' : null)}
+                trailing={
+                  <PasswordToggle show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} />
+                }
+              />
             </motion.div>
 
             <motion.div variants={fieldVariants}>
@@ -233,11 +284,11 @@ export default function LoginPage() {
                       className="flex items-center gap-2"
                     >
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Signing in
+                      Creating account
                     </motion.span>
                   ) : (
                     <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      Sign in
+                      Create account
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -260,10 +311,10 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-ink hover:text-clay transition-colors">
-              Create one
-            </Link>
+            Already have an account?{' '}
+            <a href="/login" className="font-medium text-ink hover:text-clay transition-colors">
+              Sign in
+            </a>
           </motion.p>
         </motion.div>
       </div>
@@ -293,6 +344,31 @@ function StitchLine({ reduced }: { reduced: boolean }) {
         transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
       />
     </svg>
+  );
+}
+
+function PasswordToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="text-ink/35 hover:text-ink/70 transition-colors"
+      tabIndex={-1}
+      aria-label={show ? 'Hide password' : 'Show password'}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={show ? 'on' : 'off'}
+          initial={{ opacity: 0, rotate: -8 }}
+          animate={{ opacity: 1, rotate: 0 }}
+          exit={{ opacity: 0, rotate: 8 }}
+          transition={{ duration: 0.15 }}
+          className="flex"
+        >
+          {show ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+        </motion.span>
+      </AnimatePresence>
+    </button>
   );
 }
 
@@ -359,47 +435,6 @@ function FloatingField({
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function Checkbox({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-      <span
-        onClick={() => onChange(!checked)}
-        className={`relative w-4 h-4 rounded shrink-0 border flex items-center justify-center transition-colors
-          ${checked ? 'bg-ink border-ink' : 'border-line bg-transparent group-hover:border-ink/40'}`}
-      >
-        <svg viewBox="0 0 16 16" className="w-3 h-3 text-canvas">
-          <motion.path
-            d="M3.5 8.2 6.3 11 12.5 4.8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={false}
-            animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        </svg>
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
-      />
-      <span className="text-sm text-ink/60">{label}</span>
-    </label>
   );
 }
 
