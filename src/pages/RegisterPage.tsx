@@ -115,11 +115,11 @@ export default function RegisterPage() {
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas"
             >
-              Cut your
+              You affect your
               <br />
-              own pattern.
+              World 
               <br />
-              Join us.
+              by what you choose.
             </motion.h1>
             <motion.p
               initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
@@ -127,7 +127,7 @@ export default function RegisterPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
             >
-              Create an account to save your measurements, follow orders, and build a wishlist that's yours.
+              platform that empowers users to take control of their future. With our innovative tools and resources, manage your finances with ease.
             </motion.p>
           </div>
 
@@ -137,14 +137,12 @@ export default function RegisterPage() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40"
           >
-            <span>Style No. 002</span>
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
           </motion.div>
         </div>
       </div>
 
-      {/* Right — form panel */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-10">
         <motion.div {...rootMotionProps} variants={containerVariants} className="w-full max-w-sm">
           <motion.div variants={fieldVariants} className="mb-6 lg:hidden flex items-center gap-2">
@@ -182,7 +180,7 @@ export default function RegisterPage() {
                 label="Full name"
                 value={name}
                 onChange={setName}
-                icon={<User className="w-[18px] h-[18px]" />}
+                icon={<User className="w-4.5 h-4.5" />}
                 error={errors.name}
                 autoComplete="name"
                 focused={focused === 'name'}
@@ -197,7 +195,7 @@ export default function RegisterPage() {
                 label="Email address"
                 value={email}
                 onChange={setEmail}
-                icon={<Mail className="w-[18px] h-[18px]" />}
+                icon={<Mail className="w-4.5 h-4.5" />}
                 error={errors.email}
                 autoComplete="email"
                 focused={focused === 'email'}
@@ -212,7 +210,7 @@ export default function RegisterPage() {
                 label="Password"
                 value={password}
                 onChange={setPassword}
-                icon={<Lock className="w-[18px] h-[18px]" />}
+                icon={<Lock className="w-4.5 h-4.5" />}
                 error={errors.password}
                 autoComplete="new-password"
                 focused={focused === 'password'}
@@ -255,7 +253,7 @@ export default function RegisterPage() {
                 label="Confirm password"
                 value={confirmPassword}
                 onChange={setConfirmPassword}
-                icon={<Lock className="w-[18px] h-[18px]" />}
+                icon={<Lock className="w-4.5 h-4.5" />}
                 error={errors.confirmPassword}
                 autoComplete="new-password"
                 focused={focused === 'confirmPassword'}
@@ -365,7 +363,7 @@ function PasswordToggle({ show, onToggle }: { show: boolean; onToggle: () => voi
           transition={{ duration: 0.15 }}
           className="flex"
         >
-          {show ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+          {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
         </motion.span>
       </AnimatePresence>
     </button>

@@ -115,7 +115,6 @@ export default function LoginPage() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40"
           >
-            <span>Style No. 001</span>
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
           </motion.div>
