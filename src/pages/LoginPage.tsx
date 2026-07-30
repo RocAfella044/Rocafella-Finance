@@ -54,11 +54,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1400));
-      if (rememberMe) {
-        localStorage.setItem('threadline_user', JSON.stringify({ email }));
-      } else {
-        localStorage.removeItem('threadline_user');
-      }
+      localStorage.setItem('threadline_user', JSON.stringify({ email }));
       navigate('/dashboard', { replace: true });
     } catch {
       setSubmitError("We couldn't sign you in. Check your details and try again.");
@@ -125,7 +121,7 @@ export default function LoginPage() {
         <motion.div {...rootMotionProps} variants={containerVariants} className="w-full max-w-sm">
           <motion.div variants={fieldVariants} className="mb-6 lg:hidden flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
-            <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Threadline</span>
+            <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Welcome to Rocafella Finance</span>
           </motion.div>
 
           <motion.div variants={fieldVariants}>
