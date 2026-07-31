@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 type FormErrors = Partial<Record<'email' | 'password', string>>;
 
@@ -20,6 +21,7 @@ const fieldVariants: Variants = {
 export default function LoginPage() {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
+  const login = useAuthStore((s) => s.login);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,7 +56,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1400));
-      localStorage.setItem('threadline_user', JSON.stringify({ email }));
+      login({ email });
       navigate('/dashboard', { replace: true });
     } catch {
       setSubmitError("We couldn't sign you in. Check your details and try again.");

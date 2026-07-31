@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
+import { useDashboardStore } from '../store/dashboardStore';
 
 const containerVariants: Variants = {
   hidden: {},
@@ -18,48 +19,9 @@ const itemVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
 };
 
-const stats = [
-  { label: 'Total Balance', value: '$24,890.00', change: '+12.5%', icon: DollarSign },
-  { label: 'Active Orders', value: '14', change: '+3', icon: ShoppingCart },
-  { label: 'Portfolio Growth', value: '18.2%', change: '+4.1%', icon: TrendingUp },
-  { label: 'Clients', value: '342', change: '+28', icon: Users },
-];
-
-const portfolioData = [
-  { month: 'Jan', value: 18400 },
-  { month: 'Feb', value: 19200 },
-  { month: 'Mar', value: 20800 },
-  { month: 'Apr', value: 21500 },
-  { month: 'May', value: 23200 },
-  { month: 'Jun', value: 24890 },
-];
-
-const incomeExpenseData = [
-  { month: 'Jan', income: 4200, expenses: 2800 },
-  { month: 'Feb', income: 3800, expenses: 3100 },
-  { month: 'Mar', income: 5100, expenses: 2600 },
-  { month: 'Apr', income: 4600, expenses: 3300 },
-  { month: 'May', income: 5400, expenses: 2900 },
-  { month: 'Jun', income: 6200, expenses: 3500 },
-];
-
-const categoryData = [
-  { name: 'Shopping', value: 35 },
-  { name: 'Bills', value: 25 },
-  { name: 'Food', value: 20 },
-  { name: 'Transport', value: 12 },
-  { name: 'Other', value: 8 },
-];
+const statIcons = [DollarSign, ShoppingCart, TrendingUp, Users];
 
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
-
-const recentOrders = [
-  { id: '#ORD-001', client: 'Sarah Johnson', item: 'Summer Collection', amount: '$1,200', status: 'Completed' },
-  { id: '#ORD-002', client: 'Marcus Lee', item: 'Tailored Suit', amount: '$3,400', status: 'In Progress' },
-  { id: '#ORD-003', client: 'Elena Rodriguez', item: 'Accessories Set', amount: '$680', status: 'Completed' },
-  { id: '#ORD-004', client: 'David Kim', item: 'Winter Coat', amount: '$2,100', status: 'Pending' },
-  { id: '#ORD-005', client: 'Amara Okafor', item: 'Custom Dress', amount: '$1,850', status: 'In Progress' },
-];
 
 const statusColor: Record<string, string> = {
   Completed: 'text-moss bg-moss/10',
@@ -69,6 +31,11 @@ const statusColor: Record<string, string> = {
 
 export default function DashboardPage() {
   const prefersReducedMotion = useReducedMotion();
+  const stats = useDashboardStore((s) => s.stats);
+  const portfolioData = useDashboardStore((s) => s.portfolioData);
+  const incomeExpenseData = useDashboardStore((s) => s.incomeExpenseData);
+  const categoryData = useDashboardStore((s) => s.categoryData);
+  const recentOrders = useDashboardStore((s) => s.recentOrders);
   const rootMotionProps = prefersReducedMotion
     ? {}
     : { initial: 'hidden' as const, animate: 'visible' as const };
@@ -97,20 +64,23 @@ export default function DashboardPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat) => (
-            <motion.div
-              key={stat.label}
-              variants={itemVariants}
-              className="rounded-xl border border-line bg-canvas p-5 hover:border-ink/20 transition-colors"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-ink/40">{stat.label}</span>
-                <stat.icon className="w-4 h-4 text-ink/30" />
-              </div>
-              <p className="font-serif text-2xl text-ink">{stat.value}</p>
-              <p className="text-xs mt-1 text-moss">{stat.change} this month</p>
-            </motion.div>
-          ))}
+          {stats.map((stat, i) => {
+            const Icon = statIcons[i] ?? statIcons[0];
+            return (
+              <motion.div
+                key={stat.label}
+                variants={itemVariants}
+                className="rounded-xl border border-line bg-canvas p-5 hover:border-ink/20 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-mono uppercase tracking-wider text-ink/40">{stat.label}</span>
+                  <Icon className="w-4 h-4 text-ink/30" />
+                </div>
+                <p className="font-serif text-2xl text-ink">{stat.value}</p>
+                <p className="text-xs mt-1 text-moss">{stat.change} this month</p>
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

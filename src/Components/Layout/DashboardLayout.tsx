@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   LayoutDashboard, ArrowLeftRight, FileText, CreditCard, PiggyBank,
   BarChart3, Settings, LogOut, Menu, X, Bell,
 } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import { useUiStore } from '../../store/uiStore';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -16,26 +17,18 @@ const navItems = [
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-type User = { email: string; name?: string };
-
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const navigate = useNavigate();
   const location = useLocation();
   const prefersReducedMotion = useReducedMotion();
-  const [user, setUser] = useState<User | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('threadline_user');
-    if (!stored) {
-      navigate('/login', { replace: true });
-      return;
-    }
-    setUser(JSON.parse(stored));
-  }, [navigate]);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const sidebarOpen = useUiStore((s) => s.sidebarOpen);
+  const openSidebar = useUiStore((s) => s.openSidebar);
+  const closeSidebar = useUiStore((s) => s.closeSidebar);
 
   const handleLogout = () => {
-    localStorage.removeItem('threadline_user');
+    logout();
     navigate('/login', { replace: true });
   };
 
@@ -49,7 +42,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => closeSidebar()}
             className="fixed inset-0 z-30 bg-ink/40 backdrop-blur-sm lg:hidden"
           />
         )}
@@ -73,7 +66,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/70">Rocafella</span>
           </motion.div>
           <button
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => closeSidebar()}
             className="lg:hidden text-canvas/50 hover:text-canvas transition-colors"
           >
             <X className="w-5 h-5" />
@@ -108,7 +101,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
                 transition={{ duration: 0.4, delay: 0.15 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
                 onClick={() => {
                   navigate(item.path);
-                  setSidebarOpen(false);
+                  closeSidebar();
                 }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-all
                   ${active
@@ -150,7 +143,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
           <div className="flex items-center justify-between px-4 sm:px-8 h-16">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setSidebarOpen(true)}
+                onClick={() => openSidebar()}
                 className="lg:hidden text-ink/50 hover:text-ink transition-colors"
               >
                 <Menu className="w-5 h-5" />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'confirmPassword', string>>;
 
@@ -31,6 +32,7 @@ function passwordStrength(password: string): { score: number; label: string } {
 export default function RegisterPage() {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
+  const register = useAuthStore((s) => s.register);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -79,7 +81,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1400));
-      localStorage.setItem('threadline_user', JSON.stringify({ email, name }));
+      register({ email, name });
       navigate('/dashboard', { replace: true });
     } catch {
       setSubmitError("We couldn't create your account. Please try again.");
