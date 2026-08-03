@@ -1,8 +1,5 @@
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import {
-  BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart,
-} from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
@@ -22,7 +19,6 @@ const itemVariants: Variants = {
 const statIcons = [DollarSign, ShoppingCart, TrendingUp, Users];
 
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
-
 const statusColor: Record<string, string> = {
   Completed: 'text-moss bg-moss/10',
   'In Progress': 'text-sand bg-sand/10',

@@ -1,20 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import {
-  LayoutDashboard, ArrowLeftRight, FileText, CreditCard, PiggyBank,
-  BarChart3, Settings, LogOut, Menu, X, Bell,
-} from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, Bell } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Transactions', icon: ArrowLeftRight, path: '/transactions' },
-  { label: 'Invoices', icon: FileText, path: '/invoices' },
-  { label: 'Cards', icon: CreditCard, path: '/cards' },
-  { label: 'Saving Plans', icon: PiggyBank, path: '/savings' },
-  { label: 'Insights', icon: BarChart3, path: '/insights' },
-  { label: 'Settings', icon: Settings, path: '/settings' },
+
 ];
 
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
