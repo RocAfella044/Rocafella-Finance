@@ -95,7 +95,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-canvas">
-      {/* Left — brand panel */}
       <div className="hidden lg:flex lg:w-[44%] relative bg-ink overflow-hidden">
         <StitchLine reduced={!!prefersReducedMotion} />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
@@ -310,7 +309,7 @@ export default function RegisterPage() {
           </motion.div>
 
           <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Already have an account?{' '}
+            Already have an account?{''}
             <a href="/login" className="font-medium text-ink hover:text-clay transition-colors">
               Sign in
             </a>
