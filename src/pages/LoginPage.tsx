@@ -103,7 +103,7 @@ export default function LoginPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
             >
-              Sign in to track orders, revisit your fittings, and pick up your wishlist where you left it.
+              Sign in to track, revisit, and pick up where you left it.
             </motion.p>
           </div>
 
@@ -257,7 +257,7 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Don't have an account?{' '}
+            Don't have an account?{''}
             <Link to="/register" className="font-medium text-ink hover:text-clay transition-colors">
               Create one
             </Link>
