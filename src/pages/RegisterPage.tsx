@@ -1,22 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'confirmPassword', string>>;
-
-const containerVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
-  },
-};
-
-const fieldVariants: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-};
 
 function passwordStrength(password: string): { score: number; label: string } {
   if (!password) return { score: 0, label: '' };
@@ -31,7 +18,6 @@ function passwordStrength(password: string): { score: number; label: string } {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const prefersReducedMotion = useReducedMotion();
   const register = useAuthStore((s) => s.register);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -88,121 +74,83 @@ export default function RegisterPage() {
     }
   };
 
-  const rootMotionProps = prefersReducedMotion
-    ? {}
-    : { initial: 'hidden' as const, animate: 'visible' as const };
-
   return (
     <div className="min-h-screen flex bg-canvas">
       <div className="hidden lg:flex lg:w-[44%] relative bg-ink overflow-hidden">
-        <StitchLine reduced={!!prefersReducedMotion} />
+        <StitchLine />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <motion.div
-            initial={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
-            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-2"
-          >
+          <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/70">Rocafella Finance</span>
-          </motion.div>
-
-          <div>
-            <motion.h1
-              initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas"
-            >
-              You affect your
-              <br />
-              World 
-              <br />
-              by what you choose.
-            </motion.h1>
-            <motion.p
-              initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
-            >
-              platform that empowers users to take control of their future. With our innovative tools and resources, manage your finances with ease.
-            </motion.p>
           </div>
 
-          <motion.div
-            initial={prefersReducedMotion ? undefined : { opacity: 0 }}
-            animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40"
-          >
+          <div>
+            <h1 className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas">
+              You affect your
+              <br />
+              World
+              <br />
+              by what you choose.
+            </h1>
+            <p className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed">
+              platform that empowers users to take control of their future. With our innovative tools and resources, manage your finances with ease.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40">
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-10">
-        <motion.div {...rootMotionProps} variants={containerVariants} className="w-full max-w-sm">
-          <motion.div variants={fieldVariants} className="mb-6 lg:hidden flex items-center gap-2">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 lg:hidden flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Rocafella Finance</span>
-          </motion.div>
+          </div>
 
-          <motion.div variants={fieldVariants}>
+          <div>
             <h2 className="font-serif text-3xl text-ink">Create account</h2>
             <p className="mt-2 text-sm text-ink/50">Sign up to get started</p>
-          </motion.div>
+          </div>
 
-          <AnimatePresence>
-            {submitError && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 20 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
-              >
-                <div className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay">
-                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <span>{submitError}</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {submitError && (
+            <div className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay mt-5">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{submitError}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
-            <motion.div variants={fieldVariants}>
-              <FloatingField
-                id="name"
-                type="text"
-                label="Full name"
-                value={name}
-                onChange={setName}
-                icon={<User className="w-4.5 h-4.5" />}
-                error={errors.name}
-                autoComplete="name"
-                focused={focused === 'name'}
-                onFocusChange={(f) => setFocused(f ? 'name' : null)}
-              />
-            </motion.div>
+            <FloatingField
+              id="name"
+              type="text"
+              label="Full name"
+              value={name}
+              onChange={setName}
+              icon={<User className="w-4.5 h-4.5" />}
+              error={errors.name}
+              autoComplete="name"
+              focused={focused === 'name'}
+              onFocusChange={(f) => setFocused(f ? 'name' : null)}
+            />
 
-            <motion.div variants={fieldVariants}>
-              <FloatingField
-                id="email"
-                type="email"
-                label="Email address"
-                value={email}
-                onChange={setEmail}
-                icon={<Mail className="w-4.5 h-4.5" />}
-                error={errors.email}
-                autoComplete="email"
-                focused={focused === 'email'}
-                onFocusChange={(f) => setFocused(f ? 'email' : null)}
-              />
-            </motion.div>
+            <FloatingField
+              id="email"
+              type="email"
+              label="Email address"
+              value={email}
+              onChange={setEmail}
+              icon={<Mail className="w-4.5 h-4.5" />}
+              error={errors.email}
+              autoComplete="email"
+              focused={focused === 'email'}
+              onFocusChange={(f) => setFocused(f ? 'email' : null)}
+            />
 
-            <motion.div variants={fieldVariants}>
+            <div>
               <FloatingField
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -214,106 +162,74 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 focused={focused === 'password'}
                 onFocusChange={(f) => setFocused(f ? 'password' : null)}
-                trailing={
-                  <PasswordToggle show={showPassword} onToggle={() => setShowPassword((s) => !s)} />
-                }
+                trailing={<PasswordToggle show={showPassword} onToggle={() => setShowPassword((s) => !s)} />}
               />
-              <AnimatePresence>
-                {password.length > 0 && !errors.password && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex-1 h-1 rounded-full bg-line overflow-hidden">
-                        <motion.div
-                          className={`h-full ${
-                            strength.score <= 1 ? 'bg-clay' : strength.score === 2 ? 'bg-sand' : 'bg-moss'
-                          }`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${(strength.score / 4) * 100}%` }}
-                          transition={{ duration: 0.25 }}
-                        />
-                      </div>
-                      <span className="text-[11px] text-ink/40 w-10 text-right">{strength.label}</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              {password.length > 0 && !errors.password && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 h-1 rounded-full bg-line overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        strength.score <= 1 ? 'bg-clay' : strength.score === 2 ? 'bg-sand' : 'bg-moss'
+                      }`}
+                      style={{ width: `${(strength.score / 4) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-ink/40 w-10 text-right">{strength.label}</span>
+                </div>
+              )}
+            </div>
 
-            <motion.div variants={fieldVariants}>
-              <FloatingField
-                id="confirmPassword"
-                type={showConfirm ? 'text' : 'password'}
-                label="Confirm password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                icon={<Lock className="w-4.5 h-4.5" />}
-                error={errors.confirmPassword}
-                autoComplete="new-password"
-                focused={focused === 'confirmPassword'}
-                onFocusChange={(f) => setFocused(f ? 'confirmPassword' : null)}
-                trailing={
-                  <PasswordToggle show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} />
-                }
-              />
-            </motion.div>
+            <FloatingField
+              id="confirmPassword"
+              type={showConfirm ? 'text' : 'password'}
+              label="Confirm password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              icon={<Lock className="w-4.5 h-4.5" />}
+              error={errors.confirmPassword}
+              autoComplete="new-password"
+              focused={focused === 'confirmPassword'}
+              onFocusChange={(f) => setFocused(f ? 'confirmPassword' : null)}
+              trailing={<PasswordToggle show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} />}
+            />
 
-            <motion.div variants={fieldVariants}>
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={loading ? undefined : { scale: 1.01 }}
-                whileTap={loading ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {loading ? (
-                    <motion.span
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating account
-                    </motion.span>
-                  ) : (
-                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      Create account
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </motion.div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating account
+                </>
+              ) : (
+                'Create account'
+              )}
+            </button>
           </form>
 
-          <motion.div variants={fieldVariants} className="mt-8 relative">
+          <div className="mt-8 relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-line" />
             </div>
             <div className="relative flex justify-center">
               <span className="px-3 bg-canvas text-xs uppercase tracking-widest text-ink/35">or continue with</span>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={fieldVariants} className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-3">
             <SocialButton label="Google" icon={<GoogleMark />} />
             <SocialButton label="GitHub" icon={<GithubMark />} />
-          </motion.div>
+          </div>
 
-          <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Already have an account?{''}
-            <a href="/login" className="font-medium text-ink hover:text-clay transition-colors">
+          <p className="mt-8 text-center text-sm text-ink/50">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-ink hover:text-clay transition-colors">
               Sign in
-            </a>
-          </motion.p>
-        </motion.div>
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -321,7 +237,7 @@ export default function RegisterPage() {
 
 /* ---------- Subcomponents ---------- */
 
-function StitchLine({ reduced }: { reduced: boolean }) {
+function StitchLine() {
   return (
     <svg
       className="absolute right-0 top-0 h-full w-24 opacity-40"
@@ -329,16 +245,13 @@ function StitchLine({ reduced }: { reduced: boolean }) {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <motion.path
+      <path
         d="M 50 0 L 50 800"
         stroke="currentColor"
         className="text-canvas"
         strokeWidth="1.5"
         strokeDasharray="10 8"
         fill="none"
-        initial={reduced ? undefined : { pathLength: 0, opacity: 0 }}
-        animate={reduced ? undefined : { pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
       />
     </svg>
   );
@@ -353,18 +266,7 @@ function PasswordToggle({ show, onToggle }: { show: boolean; onToggle: () => voi
       tabIndex={-1}
       aria-label={show ? 'Hide password' : 'Show password'}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={show ? 'on' : 'off'}
-          initial={{ opacity: 0, rotate: -8 }}
-          animate={{ opacity: 1, rotate: 0 }}
-          exit={{ opacity: 0, rotate: 8 }}
-          transition={{ duration: 0.15 }}
-          className="flex"
-        >
-          {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-        </motion.span>
-      </AnimatePresence>
+      {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
     </button>
   );
 }
@@ -419,33 +321,20 @@ function FloatingField({
         </label>
         {trailing && <span className="absolute right-3.5 top-1/2 -translate-y-1/2">{trailing}</span>}
       </div>
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="mt-1.5 text-xs text-clay"
-          >
-            {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {error && <p className="mt-1.5 text-xs text-clay">{error}</p>}
     </div>
   );
 }
 
 function SocialButton({ label, icon }: { label: string; icon: React.ReactNode }) {
   return (
-    <motion.button
+    <button
       type="button"
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.97 }}
-      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 transition-colors"
+      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 hover:-translate-y-0.5 active:scale-[0.97] transition-all"
     >
       {icon}
       {label}
-    </motion.button>
+    </button>
   );
 }
 

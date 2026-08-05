@@ -1,26 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 type FormErrors = Partial<Record<'email' | 'password', string>>;
 
-const containerVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.09, delayChildren: 0.15 },
-  },
-};
-
-const fieldVariants: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
-};
-
 export default function LoginPage() {
   const navigate = useNavigate();
-  const prefersReducedMotion = useReducedMotion();
   const login = useAuthStore((s) => s.login);
 
   const [email, setEmail] = useState('');
@@ -64,204 +50,137 @@ export default function LoginPage() {
     }
   };
 
-  const rootMotionProps = prefersReducedMotion
-    ? {}
-    : { initial: 'hidden' as const, animate: 'visible' as const };
-
   return (
     <div className="min-h-screen flex bg-canvas">
       <div className="hidden lg:flex lg:w-[44%] relative bg-ink overflow-hidden">
-        <StitchLine reduced={!!prefersReducedMotion} />
+        <StitchLine />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <motion.div
-            initial={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
-            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-2"
-          >
+          <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/70">Rocafella Finance</span>
-          </motion.div>
+          </div>
 
           <div>
-            <motion.h1
-              initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas"
-            >
+            <h1 className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas">
               Trust and
               <br />
               Technology
               <br />
               at the same time.
-            </motion.h1>
-            <motion.p
-              initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
-            >
+            </h1>
+            <p className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed">
               Sign in to track, revisit, and pick up where you left it.
-            </motion.p>
+            </p>
           </div>
 
-          <motion.div
-            initial={prefersReducedMotion ? undefined : { opacity: 0 }}
-            animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40"
-          >
+          <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40">
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-10">
-        <motion.div {...rootMotionProps} variants={containerVariants} className="w-full max-w-sm">
-          <motion.div variants={fieldVariants} className="mb-6 lg:hidden flex items-center gap-2">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 lg:hidden flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Welcome to Rocafella Finance</span>
-          </motion.div>
+          </div>
 
-          <motion.div variants={fieldVariants}>
+          <div>
             <h2 className="font-serif text-3xl text-ink">Welcome back</h2>
             <p className="mt-2 text-sm text-ink/50">Sign in to your account</p>
-          </motion.div>
+          </div>
 
-          <AnimatePresence>
-            {submitError && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 20 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
-              >
-                <div className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay">
-                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <span>{submitError}</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {submitError && (
+            <div className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay mt-5">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{submitError}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
-            <motion.div variants={fieldVariants}>
-              <FloatingField
-                id="email"
-                type="email"
-                label="Email address"
-                value={email}
-                onChange={setEmail}
-                icon={<Mail className="w-4.5 h-4.5" />}
-                error={errors.email}
-                autoComplete="email"
-                focused={focused === 'email'}
-                onFocusChange={(f) => setFocused(f ? 'email' : null)}
-              />
-            </motion.div>
+            <FloatingField
+              id="email"
+              type="email"
+              label="Email address"
+              value={email}
+              onChange={setEmail}
+              icon={<Mail className="w-4.5 h-4.5" />}
+              error={errors.email}
+              autoComplete="email"
+              focused={focused === 'email'}
+              onFocusChange={(f) => setFocused(f ? 'email' : null)}
+            />
 
-            <motion.div variants={fieldVariants}>
-              <FloatingField
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                label="Password"
-                value={password}
-                onChange={setPassword}
-                icon={<Lock className="w-4.5 h-4.5" />}
-                error={errors.password}
-                autoComplete="current-password"
-                focused={focused === 'password'}
-                onFocusChange={(f) => setFocused(f ? 'password' : null)}
-                trailing={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="text-ink/35 hover:text-ink/70 transition-colors"
-                    tabIndex={-1}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={showPassword ? 'on' : 'off'}
-                        initial={{ opacity: 0, rotate: -8 }}
-                        animate={{ opacity: 1, rotate: 0 }}
-                        exit={{ opacity: 0, rotate: 8 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4.5 h-4.5" />
-                        ) : (
-                          <Eye className="w-4.5 h-4.5" />
-                        )}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
-                }
-              />
-            </motion.div>
+            <FloatingField
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              icon={<Lock className="w-4.5 h-4.5" />}
+              error={errors.password}
+              autoComplete="current-password"
+              focused={focused === 'password'}
+              onFocusChange={(f) => setFocused(f ? 'password' : null)}
+              trailing={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="text-ink/35 hover:text-ink/70 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                </button>
+              }
+            />
 
-            <motion.div variants={fieldVariants} className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between pt-1">
               <Checkbox checked={rememberMe} onChange={setRememberMe} label="Remember me" />
               <a href="#" className="text-sm text-ink/50 hover:text-clay transition-colors">
                 Forgot password?
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div variants={fieldVariants}>
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={loading ? undefined : { scale: 1.01 }}
-                whileTap={loading ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {loading ? (
-                    <motion.span
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Signing in
-                    </motion.span>
-                  ) : (
-                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      Sign in
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </motion.div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Signing in
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </button>
           </form>
 
-          <motion.div variants={fieldVariants} className="mt-8 relative">
+          <div className="mt-8 relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-line" />
             </div>
             <div className="relative flex justify-center">
               <span className="px-3 bg-canvas text-xs uppercase tracking-widest text-ink/35">or continue with</span>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={fieldVariants} className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-3">
             <SocialButton label="Google" icon={<GoogleMark />} />
             <SocialButton label="GitHub" icon={<GithubMark />} />
-          </motion.div>
+          </div>
 
-          <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Don't have an account? {''}
+          <p className="mt-8 text-center text-sm text-ink/50">
+            Don't have an account?{' '}
             <Link to="/register" className="font-medium text-ink hover:text-clay transition-colors">
               Create one
             </Link>
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -269,7 +188,7 @@ export default function LoginPage() {
 
 /* ---------- Subcomponents ---------- */
 
-function StitchLine({ reduced }: { reduced: boolean }) {
+function StitchLine() {
   return (
     <svg
       className="absolute right-0 top-0 h-full w-24 opacity-40"
@@ -277,16 +196,13 @@ function StitchLine({ reduced }: { reduced: boolean }) {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <motion.path
+      <path
         d="M 50 0 L 50 800"
         stroke="currentColor"
         className="text-canvas"
         strokeWidth="1.5"
         strokeDasharray="10 8"
         fill="none"
-        initial={reduced ? undefined : { pathLength: 0, opacity: 0 }}
-        animate={reduced ? undefined : { pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
       />
     </svg>
   );
@@ -342,18 +258,7 @@ function FloatingField({
         </label>
         {trailing && <span className="absolute right-3.5 top-1/2 -translate-y-1/2">{trailing}</span>}
       </div>
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="mt-1.5 text-xs text-clay"
-          >
-            {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {error && <p className="mt-1.5 text-xs text-clay">{error}</p>}
     </div>
   );
 }
@@ -374,17 +279,14 @@ function Checkbox({
         className={`relative w-4 h-4 rounded shrink-0 border flex items-center justify-center transition-colors
           ${checked ? 'bg-ink border-ink' : 'border-line bg-transparent group-hover:border-ink/40'}`}
       >
-        <svg viewBox="0 0 16 16" className="w-3 h-3 text-canvas">
-          <motion.path
+        <svg viewBox="0 0 16 16" className={`w-3 h-3 text-canvas transition-opacity ${checked ? 'opacity-100' : 'opacity-0'}`}>
+          <path
             d="M3.5 8.2 6.3 11 12.5 4.8"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            initial={false}
-            animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
           />
         </svg>
       </span>
@@ -401,15 +303,13 @@ function Checkbox({
 
 function SocialButton({ label, icon }: { label: string; icon: React.ReactNode }) {
   return (
-    <motion.button
+    <button
       type="button"
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.97 }}
-      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 transition-colors"
+      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 hover:-translate-y-0.5 active:scale-[0.97] transition-all"
     >
       {icon}
       {label}
-    </motion.button>
+    </button>
   );
 }
 
