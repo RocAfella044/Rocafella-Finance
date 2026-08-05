@@ -256,7 +256,7 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.p variants={fieldVariants} className="mt-8 text-center text-sm text-ink/50">
-            Don't have an account?{' Forty-two'}
+            Don't have an account? {''}
             <Link to="/register" className="font-medium text-ink hover:text-clay transition-colors">
               Create one
             </Link>
