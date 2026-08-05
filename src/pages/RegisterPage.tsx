@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { FadeIn } from '../lib/FadeIn';
+import { Divider } from '../lib/Divider';
 
 type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'confirmPassword', string>>;
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 function passwordStrength(password: string): { score: number; label: string } {
   if (!password) return { score: 0, label: '' };
@@ -79,12 +84,14 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-[44%] relative bg-ink overflow-hidden">
         <StitchLine />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-clay" />
-            <span className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/70">Rocafella Finance</span>
-          </div>
+          <FadeIn delay={0.1}>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-clay" />
+              <span className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/70">Rocafella Finance</span>
+            </div>
+          </FadeIn>
 
-          <div>
+          <FadeIn delay={0.15}>
             <h1 className="font-serif text-4xl xl:text-5xl leading-[1.1] text-canvas">
               You affect your
               <br />
@@ -92,65 +99,82 @@ export default function RegisterPage() {
               <br />
               by what you choose.
             </h1>
-            <p className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
+              className="mt-5 text-canvas/60 text-sm max-w-xs leading-relaxed"
+            >
               platform that empowers users to take control of their future. With our innovative tools and resources, manage your finances with ease.
-            </p>
-          </div>
+            </motion.p>
+          </FadeIn>
 
-          <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40">
+          <FadeIn delay={0.45} className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/40">
             <span className="w-8 h-px bg-canvas/20" />
             <span>Est. 2026</span>
-          </div>
+          </FadeIn>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-10">
         <div className="w-full max-w-sm">
-          <div className="mb-6 lg:hidden flex items-center gap-2">
+          <FadeIn className="mb-6 lg:hidden flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-clay" />
             <span className="font-mono text-xs tracking-[0.3em] uppercase text-ink/50">Rocafella Finance</span>
-          </div>
+          </FadeIn>
 
-          <div>
+          <FadeIn>
             <h2 className="font-serif text-3xl text-ink">Create account</h2>
             <p className="mt-2 text-sm text-ink/50">Sign up to get started</p>
-          </div>
+          </FadeIn>
 
-          {submitError && (
-            <div className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay mt-5">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span>{submitError}</span>
-            </div>
-          )}
+          <AnimatePresence>
+            {submitError && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-start gap-2 rounded-lg bg-clay/10 border border-clay/30 px-3.5 py-3 text-sm text-clay mt-5"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{submitError}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
-            <FloatingField
-              id="name"
-              type="text"
-              label="Full name"
-              value={name}
-              onChange={setName}
-              icon={<User className="w-4.5 h-4.5" />}
-              error={errors.name}
-              autoComplete="name"
-              focused={focused === 'name'}
-              onFocusChange={(f) => setFocused(f ? 'name' : null)}
-            />
+            <FadeIn>
+              <FloatingField
+                id="name"
+                type="text"
+                label="Full name"
+                value={name}
+                onChange={setName}
+                icon={<User className="w-4.5 h-4.5" />}
+                error={errors.name}
+                autoComplete="name"
+                focused={focused === 'name'}
+                onFocusChange={(f) => setFocused(f ? 'name' : null)}
+              />
+            </FadeIn>
 
-            <FloatingField
-              id="email"
-              type="email"
-              label="Email address"
-              value={email}
-              onChange={setEmail}
-              icon={<Mail className="w-4.5 h-4.5" />}
-              error={errors.email}
-              autoComplete="email"
-              focused={focused === 'email'}
-              onFocusChange={(f) => setFocused(f ? 'email' : null)}
-            />
+            <FadeIn delay={0.04}>
+              <FloatingField
+                id="email"
+                type="email"
+                label="Email address"
+                value={email}
+                onChange={setEmail}
+                icon={<Mail className="w-4.5 h-4.5" />}
+                error={errors.email}
+                autoComplete="email"
+                focused={focused === 'email'}
+                onFocusChange={(f) => setFocused(f ? 'email' : null)}
+              />
+            </FadeIn>
 
-            <div>
+            <FadeIn delay={0.08}>
               <FloatingField
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -162,73 +186,82 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 focused={focused === 'password'}
                 onFocusChange={(f) => setFocused(f ? 'password' : null)}
-                trailing={<PasswordToggle show={showPassword} onToggle={() => setShowPassword((s) => !s)} />}
+                trailing={<IconSwap show={showPassword} onToggle={() => setShowPassword((s) => !s)} />}
               />
               {password.length > 0 && !errors.password && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 h-1 rounded-full bg-line overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        strength.score <= 1 ? 'bg-clay' : strength.score === 2 ? 'bg-sand' : 'bg-moss'
-                      }`}
-                      style={{ width: `${(strength.score / 4) * 100}%` }}
+                    <motion.div
+                      className={`h-full ${strength.score <= 1 ? 'bg-clay' : strength.score === 2 ? 'bg-sand' : 'bg-moss'}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(strength.score / 4) * 100}%` }}
+                      transition={{ duration: 0.25 }}
                     />
                   </div>
                   <span className="text-[11px] text-ink/40 w-10 text-right">{strength.label}</span>
                 </div>
               )}
-            </div>
+            </FadeIn>
 
-            <FloatingField
-              id="confirmPassword"
-              type={showConfirm ? 'text' : 'password'}
-              label="Confirm password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              icon={<Lock className="w-4.5 h-4.5" />}
-              error={errors.confirmPassword}
-              autoComplete="new-password"
-              focused={focused === 'confirmPassword'}
-              onFocusChange={(f) => setFocused(f ? 'confirmPassword' : null)}
-              trailing={<PasswordToggle show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} />}
-            />
+            <FadeIn delay={0.12}>
+              <FloatingField
+                id="confirmPassword"
+                type={showConfirm ? 'text' : 'password'}
+                label="Confirm password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                icon={<Lock className="w-4.5 h-4.5" />}
+                error={errors.confirmPassword}
+                autoComplete="new-password"
+                focused={focused === 'confirmPassword'}
+                onFocusChange={(f) => setFocused(f ? 'confirmPassword' : null)}
+                trailing={<IconSwap show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} />}
+              />
+            </FadeIn>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
+            <FadeIn delay={0.16}>
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={loading ? undefined : { scale: 1.01 }}
+                whileTap={loading ? undefined : { scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {loading ? (
+                    <motion.span
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2"
+                    >
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating account
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      Create account
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </FadeIn>
           </form>
 
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-line" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-3 bg-canvas text-xs uppercase tracking-widest text-ink/35">or continue with</span>
-            </div>
-          </div>
+          <Divider label="or continue with" delay={0.2} className="mt-8" />
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <FadeIn delay={0.24} className="mt-6 grid grid-cols-2 gap-3">
             <SocialButton label="Google" icon={<GoogleMark />} />
             <SocialButton label="GitHub" icon={<GithubMark />} />
-          </div>
+          </FadeIn>
 
-          <p className="mt-8 text-center text-sm text-ink/50">
+          <FadeIn delay={0.28} className="mt-8 text-center text-sm text-ink/50">
             Already have an account?{' '}
             <Link to="/login" className="font-medium text-ink hover:text-clay transition-colors">
               Sign in
             </Link>
-          </p>
+          </FadeIn>
         </div>
       </div>
     </div>
@@ -245,19 +278,22 @@ function StitchLine() {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path
+      <motion.path
         d="M 50 0 L 50 800"
         stroke="currentColor"
         className="text-canvas"
         strokeWidth="1.5"
         strokeDasharray="10 8"
         fill="none"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.4, ease: EASE }}
       />
     </svg>
   );
 }
 
-function PasswordToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) {
+function IconSwap({ show, onToggle }: { show: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
@@ -266,7 +302,18 @@ function PasswordToggle({ show, onToggle }: { show: boolean; onToggle: () => voi
       tabIndex={-1}
       aria-label={show ? 'Hide password' : 'Show password'}
     >
-      {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={show ? 'on' : 'off'}
+          initial={{ opacity: 0, rotate: -8 }}
+          animate={{ opacity: 1, rotate: 0 }}
+          exit={{ opacity: 0, rotate: 8 }}
+          transition={{ duration: 0.15 }}
+          className="flex"
+        >
+          {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+        </motion.span>
+      </AnimatePresence>
     </button>
   );
 }
@@ -321,20 +368,33 @@ function FloatingField({
         </label>
         {trailing && <span className="absolute right-3.5 top-1/2 -translate-y-1/2">{trailing}</span>}
       </div>
-      {error && <p className="mt-1.5 text-xs text-clay">{error}</p>}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="mt-1.5 text-xs text-clay"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 function SocialButton({ label, icon }: { label: string; icon: React.ReactNode }) {
   return (
-    <button
+    <motion.button
       type="button"
-      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 hover:-translate-y-0.5 active:scale-[0.97] transition-all"
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-line bg-canvas text-sm text-ink/70 hover:border-ink/30 transition-colors"
     >
       {icon}
       {label}
-    </button>
+    </motion.button>
   );
 }
 

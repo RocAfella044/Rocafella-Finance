@@ -1,9 +1,14 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, LogOut, Menu, X, Bell } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
+import { useReveal } from '../../lib/useReveal';
 
 const navItems = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }];
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const navigate = useNavigate();
@@ -14,6 +19,22 @@ export default function DashboardLayout({ children, title }: { children: React.R
   const openSidebar = useUiStore((s) => s.openSidebar);
   const closeSidebar = useUiStore((s) => s.closeSidebar);
 
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  const profileReveal = useReveal(0.1);
+  const navReveal = useReveal(0.15, 10);
+  const logoutReveal = useReveal(0.35);
+  const titleReveal = useReveal(0, 6);
+  const bellReveal = useReveal(0.1, 8);
+
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
@@ -23,16 +44,23 @@ export default function DashboardLayout({ children, title }: { children: React.R
 
   return (
     <div className="min-h-screen flex bg-canvas">
-      {sidebarOpen && (
-        <div
-          onClick={() => closeSidebar()}
-          className="fixed inset-0 z-30 bg-ink/40 backdrop-blur-sm lg:hidden"
-        />
-      )}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => closeSidebar()}
+            className="fixed inset-0 z-30 bg-ink/40 backdrop-blur-sm lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
-      <aside
-        className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-ink flex flex-col transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      <motion.aside
+        initial={false}
+        animate={{ x: isDesktop || sidebarOpen ? 0 : -280 }}
+        transition={{ duration: 0.3, ease: EASE }}
+        className="fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-ink flex flex-col"
       >
         <div className="flex items-center justify-between px-6 pt-8 pb-6">
           <div className="flex items-center gap-2">
@@ -48,7 +76,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
         </div>
 
         <div className="px-6 pb-6 border-b border-canvas/10">
-          <div className="flex items-center gap-3">
+          <motion.div {...profileReveal} className="flex items-center gap-3">
             <span className="w-9 h-9 rounded-full bg-clay/20 flex items-center justify-center text-sm font-medium text-clay">
               {(user.name?.[0] || user.email[0]).toUpperCase()}
             </span>
@@ -56,15 +84,16 @@ export default function DashboardLayout({ children, title }: { children: React.R
               <p className="text-sm font-medium text-canvas truncate">{user.name || 'User'}</p>
               <p className="text-xs text-canvas/50 truncate">{user.email}</p>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
-              <button
+              <motion.button
                 key={item.label}
+                {...navReveal}
                 onClick={() => {
                   navigate(item.path);
                   closeSidebar();
@@ -76,19 +105,22 @@ export default function DashboardLayout({ children, title }: { children: React.R
               >
                 <item.icon className="w-4.5 h-4.5 shrink-0" />
                 {item.label}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
 
         <div className="px-3 pb-6">
-          <button
+          <motion.button
+            {...logoutReveal}
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-clay/30 text-sm text-clay hover:bg-clay hover:text-canvas hover:border-clay active:scale-[0.98] transition-all"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-clay/30 text-sm text-clay hover:bg-clay hover:text-canvas hover:border-clay transition-colors"
           >
             <LogOut className="w-4.5 h-4.5 shrink-0" />
             Sign out
-          </button>
+          </motion.button>
         </div>
 
         <div className="px-6 pb-6">
@@ -97,7 +129,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             <span>Est. 2026</span>
           </div>
         </div>
-      </aside>
+      </motion.aside>
 
       <div className="flex-1 flex flex-col min-h-screen">
         <header className="sticky top-0 z-20 bg-canvas/80 backdrop-blur-sm border-b border-line">
@@ -109,14 +141,19 @@ export default function DashboardLayout({ children, title }: { children: React.R
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="font-serif text-xl text-ink">{title}</h1>
+              <motion.h1 {...titleReveal} className="font-serif text-xl text-ink">
+                {title}
+              </motion.h1>
             </div>
-            <button
+            <motion.button
+              {...bellReveal}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="relative p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-sand/30 transition-colors"
             >
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-clay" />
-            </button>
+            </motion.button>
           </div>
         </header>
 

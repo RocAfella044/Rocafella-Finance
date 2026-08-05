@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { DollarSign, ShoppingCart, TrendingUp, Users, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
+import { FadeIn } from '../lib/FadeIn';
 
 const statIcons = [DollarSign, ShoppingCart, TrendingUp, Users];
 
@@ -31,7 +33,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout title="Dashboard">
       <div className="max-w-6xl mx-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-ink p-6 sm:p-8 mb-8">
+        <FadeIn className="relative overflow-hidden rounded-2xl bg-ink p-6 sm:p-8 mb-8">
           <div className="relative z-10">
             <p className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/50 mb-2">Welcome back</p>
             <h2 className="font-serif text-2xl sm:text-3xl text-canvas">Your Financial Overview</h2>
@@ -46,13 +48,16 @@ export default function DashboardPage() {
             )}
           </div>
           <svg className="absolute -right-12 -top-12 w-64 h-64 opacity-10" viewBox="0 0 200 200" aria-hidden="true">
-            <path
+            <motion.path
               d="M 50 150 Q 100 50 150 150 T 250 150"
               stroke="currentColor" className="text-canvas" strokeWidth="2"
               strokeDasharray="8 6" fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
             />
           </svg>
-        </div>
+        </FadeIn>
 
         {error ? (
           <div className="mb-8 rounded-xl border border-clay/30 bg-clay/10 p-5 flex items-start gap-3">
@@ -80,23 +85,22 @@ export default function DashboardPage() {
               {stats.map((stat, i) => {
                 const Icon = statIcons[i] ?? statIcons[0];
                 return (
-                  <div
-                    key={stat.label}
-                    className="rounded-xl border border-line bg-canvas p-5 hover:border-ink/20 hover:-translate-y-0.5 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-mono uppercase tracking-wider text-ink/40">{stat.label}</span>
-                      <Icon className="w-4 h-4 text-ink/30" />
+                  <FadeIn key={stat.label} delay={0.05 * i}>
+                    <div className="rounded-xl border border-line bg-canvas p-5 hover:border-ink/20 hover:-translate-y-0.5 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-mono uppercase tracking-wider text-ink/40">{stat.label}</span>
+                        <Icon className="w-4 h-4 text-ink/30" />
+                      </div>
+                      <p className="font-serif text-2xl text-ink">{stat.value}</p>
+                      {stat.change && <p className="text-xs mt-1 text-moss">{stat.change}</p>}
                     </div>
-                    <p className="font-serif text-2xl text-ink">{stat.value}</p>
-                    {stat.change && <p className="text-xs mt-1 text-moss">{stat.change}</p>}
-                  </div>
+                  </FadeIn>
                 );
               })}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="rounded-xl border border-line bg-canvas p-5">
+              <FadeIn delay={0.1} className="rounded-xl border border-line bg-canvas p-5">
                 <h3 className="font-serif text-lg text-ink mb-4">Portfolio Growth</h3>
                 <ResponsiveContainer width="100%" height={260}>
                   <AreaChart data={portfolioData}>
@@ -115,9 +119,9 @@ export default function DashboardPage() {
                     <Area type="monotone" dataKey="value" stroke="#c27a6f" strokeWidth={2} fill="url(#portfolioGrad)" />
                   </AreaChart>
                 </ResponsiveContainer>
-              </div>
+              </FadeIn>
 
-              <div className="rounded-xl border border-line bg-canvas p-5">
+              <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5">
                 <h3 className="font-serif text-lg text-ink mb-4">Income vs Expenses</h3>
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={incomeExpenseData}>
@@ -131,11 +135,11 @@ export default function DashboardPage() {
                     <Bar dataKey="expenses" fill="#c27a6f" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </FadeIn>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="rounded-xl border border-line bg-canvas p-5">
+              <FadeIn delay={0.1} className="rounded-xl border border-line bg-canvas p-5">
                 <h3 className="font-serif text-lg text-ink mb-4">Spending by Category</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -161,9 +165,9 @@ export default function DashboardPage() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </FadeIn>
 
-              <div className="lg:col-span-2 rounded-xl border border-line bg-canvas overflow-hidden">
+              <FadeIn delay={0.2} className="lg:col-span-2 rounded-xl border border-line bg-canvas overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-line">
                   <h3 className="font-serif text-lg text-ink">Recent Orders</h3>
                 </div>
@@ -186,9 +190,12 @@ export default function DashboardPage() {
                           </td>
                         </tr>
                       ) : (
-                        recentOrders.map((order) => (
-                          <tr
+                        recentOrders.map((order, i) => (
+                          <motion.tr
                             key={order.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 + i * 0.04 }}
                             className="border-b border-line/50 last:border-0 hover:bg-sand/20 transition-colors"
                           >
                             <td className="px-5 py-3.5 text-ink font-medium">{order.id}</td>
@@ -200,13 +207,13 @@ export default function DashboardPage() {
                                 {order.status}
                               </span>
                             </td>
-                          </tr>
+                          </motion.tr>
                         ))
                       )}
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </FadeIn>
             </div>
           </>
         )}
