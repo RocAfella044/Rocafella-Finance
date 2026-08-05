@@ -6,7 +6,6 @@ import { useUiStore } from '../../store/uiStore';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-
 ];
 
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
@@ -113,9 +112,9 @@ export default function DashboardLayout({ children, title }: { children: React.R
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
             onClick={handleLogout}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg text-sm text-clay hover:bg-clay/10 transition-colors"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-clay/30 text-sm text-clay hover:bg-clay hover:text-canvas hover:border-clay transition-colors"
           >
             <LogOut className="w-4.5 h-4.5 shrink-0" />
             Sign out
