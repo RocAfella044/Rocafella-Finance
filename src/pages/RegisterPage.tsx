@@ -79,11 +79,10 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-      register({ email, name });
+      await register(name.trim(), email, password);
       navigate('/dashboard', { replace: true });
-    } catch {
-      setSubmitError("We couldn't create your account. Please try again.");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "We couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -7,11 +7,15 @@ import './index.css';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const initialized = useAuthStore((s) => s.initialized);
+  if (!initialized) return null;
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
 function RedirectIfAuthenticated({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const initialized = useAuthStore((s) => s.initialized);
+  if (!initialized) return null;
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 }
 

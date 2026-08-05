@@ -55,11 +55,10 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-      login({ email });
+      await login(email, password);
       navigate('/dashboard', { replace: true });
-    } catch {
-      setSubmitError("We couldn't sign you in. Check your details and try again.");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "We couldn't sign you in. Check your details and try again.");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
+import { DollarSign, ShoppingCart, TrendingUp, Users, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 
@@ -32,9 +33,17 @@ export default function DashboardPage() {
   const incomeExpenseData = useDashboardStore((s) => s.incomeExpenseData);
   const categoryData = useDashboardStore((s) => s.categoryData);
   const recentOrders = useDashboardStore((s) => s.recentOrders);
+  const loading = useDashboardStore((s) => s.loading);
+  const error = useDashboardStore((s) => s.error);
+  const lastUpdated = useDashboardStore((s) => s.lastUpdated);
+  const fetchDashboard = useDashboardStore((s) => s.fetchDashboard);
   const rootMotionProps = prefersReducedMotion
     ? {}
     : { initial: 'hidden' as const, animate: 'visible' as const };
+
+  useEffect(() => {
+    void fetchDashboard();
+  }, [fetchDashboard]);
 
   return (
     <DashboardLayout title="Dashboard">
@@ -46,6 +55,12 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-canvas/60 max-w-md">
               Here's an overview of your portfolio and recent activity.
             </p>
+            {lastUpdated && !loading && (
+              <p className="mt-3 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-moss">
+                <span className="w-1.5 h-1.5 rounded-full bg-moss animate-pulse" />
+                Live &middot; updated {new Date(lastUpdated).toLocaleTimeString()}
+              </p>
+            )}
           </div>
           <svg className="absolute -right-12 -top-12 w-64 h-64 opacity-10" viewBox="0 0 200 200" aria-hidden="true">
             <motion.path
@@ -59,6 +74,27 @@ export default function DashboardPage() {
           </svg>
         </motion.div>
 
+        {error ? (
+          <motion.div variants={itemVariants} className="mb-8 rounded-xl border border-clay/30 bg-clay/10 p-5 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-clay mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-clay">Couldn't load your dashboard</p>
+              <p className="text-sm text-clay/80 mt-1">{error}</p>
+            </div>
+            <button
+              onClick={() => void fetchDashboard()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-clay/10 text-clay hover:bg-clay/20 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Retry
+            </button>
+          </motion.div>
+        ) : loading ? (
+          <motion.div variants={itemVariants} className="mb-8 flex flex-col items-center justify-center py-16 rounded-xl border border-line bg-canvas">
+            <Loader2 className="w-6 h-6 text-ink/40 animate-spin" />
+            <p className="mt-3 text-sm text-ink/50">Loading your financial data&hellip;</p>
+          </motion.div>
+        ) : (<>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => {
             const Icon = statIcons[i] ?? statIcons[0];
@@ -163,7 +199,14 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentOrders.map((order, i) => (
+                  {recentOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink/40">
+                        No orders yet. Your orders will appear here.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentOrders.map((order, i) => (
                     <motion.tr
                       key={order.id}
                       initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
@@ -181,12 +224,14 @@ export default function DashboardPage() {
                         </span>
                       </td>
                     </motion.tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
           </motion.div>
         </div>
+        </>)}
       </motion.div>
     </DashboardLayout>
   );
