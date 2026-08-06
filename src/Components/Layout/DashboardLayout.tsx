@@ -75,16 +75,24 @@ export default function DashboardLayout({ children, title }: { children: React.R
           </button>
         </div>
 
-        <div className="px-6 pb-6 border-b border-canvas/10">
-          <motion.div {...profileReveal} className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-full bg-clay/20 flex items-center justify-center text-sm font-medium text-clay">
+        <div className="px-3 pt-4 pb-6 border-b border-canvas/10">
+          <motion.button
+            {...profileReveal}
+            onClick={() => {
+              navigate('/profile');
+              closeSidebar();
+            }}
+            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors
+              ${location.pathname === '/profile' ? 'bg-canvas/10' : 'hover:bg-canvas/5'}`}
+          >
+            <span className="w-9 h-9 rounded-full bg-clay/20 flex items-center justify-center text-sm font-medium text-clay shrink-0">
               {(user.name?.[0] || user.email[0]).toUpperCase()}
             </span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-canvas truncate">{user.name || 'User'}</p>
               <p className="text-xs text-canvas/50 truncate">{user.email}</p>
             </div>
-          </motion.div>
+          </motion.button>
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">

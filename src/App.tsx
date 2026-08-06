@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
 import { useAuthStore } from './store/authStore';
 import './index.css';
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
         <Route path="/register" element={<RedirectIfAuthenticated><RegisterPage /></RedirectIfAuthenticated>} />
         <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+        <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
