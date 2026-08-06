@@ -5,6 +5,7 @@ import { DollarSign, ShoppingCart, TrendingUp, Users, Loader2, AlertCircle, Refr
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
+import { EASE } from '../lib/motion';
 
 const statIcons = [DollarSign, ShoppingCart, TrendingUp, Users];
 
@@ -54,7 +55,7 @@ export default function DashboardPage() {
               strokeDasharray="8 6" fill="none"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 2, ease: EASE }}
             />
           </svg>
         </FadeIn>

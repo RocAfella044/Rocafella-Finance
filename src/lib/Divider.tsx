@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-
-const EASE = [0.16, 1, 0.3, 1] as const;
+import { EASE } from './motion';
 
 export function Divider({ label, delay = 0, className }: { label: string; delay?: number; className?: string }) {
   return (

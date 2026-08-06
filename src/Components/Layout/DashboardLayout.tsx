@@ -5,10 +5,9 @@ import { LayoutDashboard, LogOut, Menu, X, Bell } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 import { useReveal } from '../../lib/useReveal';
+import { EASE } from '../../lib/motion';
 
 const navItems = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }];
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const navigate = useNavigate();

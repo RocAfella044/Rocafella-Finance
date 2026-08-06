@@ -11,8 +11,7 @@ import {
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
 import { FadeIn } from '../lib/FadeIn';
-
-const EASE = [0.16, 1, 0.3, 1] as const;
+import { EASE } from '../lib/motion';
 
 const roleColor: Record<string, string> = {
   admin: 'text-clay bg-clay/10',
@@ -66,7 +65,7 @@ export default function ProfilePage() {
       setResendSent(true);
       setTimeout(() => setResendSent(false), 4000);
     } catch {
-      
+      /* error is shown in the banner above */
     }
   };
 
@@ -409,7 +408,7 @@ function NameField({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      
+      /* error is shown in the banner above */
     }
   };
 

@@ -1,6 +1,5 @@
 import { useReducedMotion } from 'framer-motion';
-
-const EASE = [0.16, 1, 0.3, 1] as const;
+import { EASE } from './motion';
 
 export function useReveal(delay = 0, y = 14) {
   const reduced = useReducedMotion();
