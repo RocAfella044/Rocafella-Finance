@@ -187,3 +187,4 @@ export default function DashboardLayout({ children, title }: { children: React.R
     </div>
   );
 }
+  
