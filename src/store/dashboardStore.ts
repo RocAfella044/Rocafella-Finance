@@ -31,6 +31,8 @@ type DbTransaction = {
 
 type DbClient = { name: string; email: string | null };
 
+type DbDeposit = { amount: number; rate: number };
+
 type DashboardState = {
   stats: Stat[];
   incomeExpenseData: IncomeExpensePoint[];
@@ -53,7 +55,7 @@ function monthLabel(date: string): string {
   return d.toLocaleString('en-US', { month: 'short' });
 }
 
-function buildDashboard(txs: DbTransaction[], clients: DbClient[]) {
+function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbDeposit[]) {
   const totals = { income: 0, expenses: 0 };
   const incomeByMonth = new Map<string, number>();
   const expensesByMonth = new Map<string, number>();
@@ -89,16 +91,17 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[]) {
   const prevNet = prevMonth ? (incomeByMonth.get(prevMonth) ?? 0) - (expensesByMonth.get(prevMonth) ?? 0) : 0;
   const balanceChange = prevNet !== 0 ? ((thisNet - prevNet) / Math.abs(prevNet)) * 100 : 0;
 
-  const thisIncome = lastMonth ? (incomeByMonth.get(lastMonth) ?? 0) : 0;
-  const prevIncome = prevMonth ? (incomeByMonth.get(prevMonth) ?? 0) : 0;
   const thisExpense = lastMonth ? (expensesByMonth.get(lastMonth) ?? 0) : 0;
   const prevExpense = prevMonth ? (expensesByMonth.get(prevMonth) ?? 0) : 0;
-  const incomeChange = prevIncome !== 0 ? ((thisIncome - prevIncome) / Math.abs(prevIncome)) * 100 : 0;
   const expenseChange = prevExpense !== 0 ? ((thisExpense - prevExpense) / Math.abs(prevExpense)) * 100 : 0;
 
   const stats: Stat[] = [
     { label: 'Total Balance', value: currency(balance), change: `${pct(balanceChange)} this month` },
-    { label: 'Total Income', value: currency(totals.income), change: `${pct(incomeChange)} this month` },
+    {
+      label: 'Fixed Deposit',
+      value: currency(deposits.reduce((s, d) => s + d.amount, 0)),
+      change: `+${currency(deposits.reduce((s, d) => s + (d.amount * d.rate) / 100, 0))} accrued interest`,
+    },
     { label: 'Total Expenses', value: currency(totals.expenses), change: `${pct(expenseChange)} this month` },
   ];
 
@@ -138,6 +141,11 @@ function attachRealtime(fetch: () => Promise<void>) {
       { event: '*', schema: 'public', table: 'clients' },
       () => void fetch(),
     )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'deposits' },
+      () => void fetch(),
+    )
     .subscribe();
 }
 
@@ -165,18 +173,19 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const [txRes, clientRes] = await Promise.all([
+      const [txRes, clientRes, depositRes] = await Promise.all([
         supabase
           .from('transactions')
           .select('id, type, category, description, amount, date')
           .order('date', { ascending: true }),
         supabase.from('clients').select('name, email').order('name', { ascending: true }),
+        supabase.from('deposits').select('amount, rate'),
       ]);
 
-      const firstError = [txRes, clientRes].find((r) => r.error)?.error;
+      const firstError = [txRes, clientRes, depositRes].find((r) => r.error)?.error;
       if (firstError) throw firstError;
 
-      const data = buildDashboard(txRes.data ?? [], clientRes.data ?? []);
+      const data = buildDashboard(txRes.data ?? [], clientRes.data ?? [], depositRes.data ?? []);
 
       set({ ...data, loading: false, lastUpdated: new Date().toISOString() });
       attachRealtime(() => get().fetchDashboard());

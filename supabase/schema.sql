@@ -51,12 +51,23 @@ alter table public.profiles add column if not exists password_changed_at timesta
     created_at timestamptz not null default now()
   );
 
+  create table if not exists public.deposits (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    label text not null default 'Fixed Deposit',
+    amount numeric(12, 2) not null check (amount > 0),
+    rate numeric(4, 2) not null default 4.5,
+    maturity_date date,
+    created_at timestamptz not null default now()
+  );
+
   -- ---------- Row Level Security ----------
 
   alter table public.profiles enable row level security;
   alter table public.transactions enable row level security;
   alter table public.orders enable row level security;
   alter table public.clients enable row level security;
+  alter table public.deposits enable row level security;
 
   drop policy if exists "Users can view own profile" on public.profiles;
   create policy "Users can view own profile"
@@ -104,6 +115,19 @@ alter table public.profiles add column if not exists password_changed_at timesta
   create policy "Users can delete own clients"
     on public.clients for delete using (auth.uid() = user_id);
 
+  drop policy if exists "Users can view own deposits" on public.deposits;
+  create policy "Users can view own deposits"
+    on public.deposits for select using (auth.uid() = user_id);
+  drop policy if exists "Users can insert own deposits" on public.deposits;
+  create policy "Users can insert own deposits"
+    on public.deposits for insert with check (auth.uid() = user_id);
+  drop policy if exists "Users can update own deposits" on public.deposits;
+  create policy "Users can update own deposits"
+    on public.deposits for update using (auth.uid() = user_id);
+  drop policy if exists "Users can delete own deposits" on public.deposits;
+  create policy "Users can delete own deposits"
+    on public.deposits for delete using (auth.uid() = user_id);
+
   -- ---------- Indexes ----------
 
   create index if not exists transactions_user_date_idx
@@ -112,6 +136,8 @@ alter table public.profiles add column if not exists password_changed_at timesta
     on public.orders (user_id, created_at desc);
   create index if not exists clients_user_idx
     on public.clients (user_id);
+  create index if not exists deposits_user_idx
+    on public.deposits (user_id);
 
   -- ---------- Realtime ----------
 
@@ -125,6 +151,9 @@ alter table public.profiles add column if not exists password_changed_at timesta
     end if;
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'clients') then
       alter publication supabase_realtime add table public.clients;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'deposits') then
+      alter publication supabase_realtime add table public.deposits;
     end if;
   end $$;
 
@@ -204,6 +233,11 @@ alter table public.profiles add column if not exists password_changed_at timesta
       (new.id, 'Mateo Alvarez', 'mateo@example.com'),
       (new.id, 'Isla Murray', 'isla@example.com'),
       (new.id, 'Hiro Tanaka', 'hiro@example.com');
+
+    -- fixed deposits
+    insert into public.deposits (user_id, label, amount, rate, maturity_date) values
+      (new.id, 'Fixed Deposit', 12000.00, 4.50, now() + interval '1 year'),
+      (new.id, 'Gold Saver', 5000.00, 5.25, now() + interval '2 years');
 
     return new;
   end;

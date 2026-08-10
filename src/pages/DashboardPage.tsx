@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { DollarSign, ShoppingCart, TrendingUp, Loader2, AlertCircle, RefreshCw, Send, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { DollarSign, ShoppingCart, PiggyBank, Loader2, AlertCircle, RefreshCw, Send, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
 
-const statIcons = [DollarSign, TrendingUp, ShoppingCart];
+const statIcons = [DollarSign, PiggyBank, ShoppingCart];
 
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
 
