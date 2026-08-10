@@ -125,7 +125,7 @@ export default function ProfilePage() {
               {profile?.accountNumber && (
                 <p className="mt-2 inline-flex items-center gap-2 font-mono text-xs tracking-[0.25em] text-moss">
                   <CreditCard className="w-3.5 h-3.5" />
-                  ACCT {profile.accountNumber}
+                  ACC NO: {profile.accountNumber}
                 </p>
               )}
             </div>

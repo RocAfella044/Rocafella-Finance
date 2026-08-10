@@ -18,7 +18,6 @@ export default function DashboardPage() {
   const incomeExpenseData = useDashboardStore((s) => s.incomeExpenseData);
   const categoryData = useDashboardStore((s) => s.categoryData);
   const recentTransactions = useDashboardStore((s) => s.recentTransactions);
-  const recipients = useDashboardStore((s) => s.recipients);
   const loading = useDashboardStore((s) => s.loading);
   const error = useDashboardStore((s) => s.error);
   const lastUpdated = useDashboardStore((s) => s.lastUpdated);
