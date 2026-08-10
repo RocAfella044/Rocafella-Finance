@@ -81,8 +81,12 @@ export default function DashboardLayout({ children, title }: { children: React.R
               navigate('/profile');
               closeSidebar();
             }}
-            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors
-              ${location.pathname === '/profile' ? 'bg-canvas/10' : 'hover:bg-canvas/5'}`}
+            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-all
+              ${
+                location.pathname === '/profile'
+                  ? 'bg-canvas/10 shadow-[0_0_28px_-6px_rgba(250,247,242,0.5)] ring-1 ring-canvas/25'
+                  : 'hover:bg-canvas/5 hover:shadow-[0_0_28px_-8px_rgba(250,247,242,0.4)]'
+              }`}
           >
             <span className="w-9 h-9 rounded-full bg-clay/20 flex items-center justify-center text-sm font-medium text-clay shrink-0">
               {(user.name?.[0] || user.email[0]).toUpperCase()}
@@ -105,10 +109,12 @@ export default function DashboardLayout({ children, title }: { children: React.R
                   navigate(item.path);
                   closeSidebar();
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-all
-                  ${active
-                    ? 'bg-canvas/10 text-canvas font-medium'
-                    : 'text-canvas/50 hover:text-canvas hover:bg-canvas/5'}`}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm cursor-pointer transition-all
+                  ${
+                    active
+                      ? 'bg-canvas/10 text-canvas font-medium shadow-[0_0_28px_-6px_rgba(250,247,242,0.5)] ring-1 ring-canvas/25'
+                      : 'text-canvas/50 hover:text-canvas hover:bg-canvas/5 hover:shadow-[0_0_28px_-8px_rgba(250,247,242,0.4)]'
+                  }`}
               >
                 <item.icon className="w-4.5 h-4.5 shrink-0" />
                 {item.label}
