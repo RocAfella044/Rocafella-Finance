@@ -12,12 +12,14 @@ create table if not exists public.profiles (
   role text not null default 'client',
   account_number text unique,
   email_verified boolean not null default false,
+  password_changed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 -- migrate existing databases (create table if not exists does not alter)
 alter table public.profiles add column if not exists account_number text unique;
 alter table public.profiles add column if not exists email_verified boolean not null default false;
+alter table public.profiles add column if not exists password_changed_at timestamptz;
 
   create table if not exists public.transactions (
     id uuid primary key default gen_random_uuid(),

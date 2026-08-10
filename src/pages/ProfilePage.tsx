@@ -6,7 +6,7 @@ import {
   Check,
   Copy,
   CreditCard,
-  KeyRound, Loader2, Mail, Shield, AlertCircle, RefreshCw, Clock,
+  KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock,
 } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
@@ -17,6 +17,8 @@ const roleColor: Record<string, string> = {
   admin: 'text-clay bg-clay/10',
   client: 'text-moss bg-moss/10',
 };
+
+const PASSWORD_LOCK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function ProfilePage() {
   const profile = useProfileStore((s) => s.profile);
@@ -31,11 +33,16 @@ export default function ProfilePage() {
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [resendSent, setResendSent] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     void fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   const initials = useMemo(() => {
     if (!profile) return 'U';
@@ -51,22 +58,14 @@ export default function ProfilePage() {
     ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : '';
 
+  const changedAt = profile?.passwordChangedAt ? new Date(profile.passwordChangedAt).getTime() : null;
+  const passwordLock = changedAt !== null && changedAt + PASSWORD_LOCK_MS > now ? { availableAt: changedAt + PASSWORD_LOCK_MS } : null;
+
   const handleCopy = () => {
     if (!profile?.accountNumber) return;
     void navigator.clipboard.writeText(profile.accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
-  };
-
-  const handleResend = async () => {
-    setResendSent(false);
-    try {
-      await useProfileStore.getState().resendVerification();
-      setResendSent(true);
-      setTimeout(() => setResendSent(false), 4000);
-    } catch {
-      /* error is shown in the banner above */
-    }
   };
 
   const handleChangePassword = async () => {
@@ -232,9 +231,98 @@ export default function ProfilePage() {
                   <DetailRow label="Email address">
                     <span className="text-ink/70">{profile.email}</span>
                   </DetailRow>
-                  <DetailRow label="Role">
+                   <DetailRow label="Role">
                     <span className="capitalize text-ink/70">{profile.role}</span>
                   </DetailRow>
+                </dl>
+              </FadeIn>
+
+              <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5 flex flex-col h-full">
+                <div className="flex-1">
+                  <h3 className="font-serif text-lg text-ink mb-1">Security</h3>
+                  <p className="text-xs text-ink/50 mb-5">
+                    Last sign in: {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
+                  </p>
+                {passwordLock ? (
+                  <div className="rounded-lg bg-sand/20 border border-line p-4">
+                    <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
+                      <Clock className="w-4 h-4 text-clay" />
+                      Password change locked
+                    </p>
+                    <p className="mt-1 text-xs text-ink/50">
+                      For your security, you can change your password again on{' '}
+                      <span className="font-medium text-ink">
+                        {new Date(passwordLock.availableAt).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                      , 1 week after your last change.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="new-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
+                          New password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
+                          <input
+                            id="new-password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="confirm-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
+                          Confirm password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
+                          <input
+                            id="confirm-password"
+                            type="password"
+                            value={confirm}
+                            onChange={(e) => setConfirm(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {(passwordError || passwordSaved) && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className={`mt-3 text-xs ${passwordError ? 'text-clay' : 'text-moss'}`}
+                        >
+                          {passwordError || 'Password updated'}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                    <motion.button
+                      onClick={() => void handleChangePassword()}
+                      disabled={saving}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium disabled:opacity-50 transition-colors hover:bg-ink/90"
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                      Change password
+                    </motion.button>
+                  </>
+                )}
+                </div>
+                <dl className="mt-auto pt-5 border-t border-line/50 space-y-4">
+                 
                   <DetailRow label="Member since">
                     <span className="flex items-center gap-1.5 text-ink/70">
                       <Calendar className="w-3.5 h-3.5 text-ink/30" />
@@ -249,123 +337,7 @@ export default function ProfilePage() {
                   </DetailRow>
                 </dl>
               </FadeIn>
-
-              <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5">
-                <h3 className="font-serif text-lg text-ink mb-4">Personal Information</h3>
-                <NameField
-                  key={profile.id}
-                  currentName={profile.fullName}
-                  email={profile.email}
-                  saving={saving}
-                  onSave={async (name) => {
-                    await useProfileStore.getState().updateFullName(name);
-                  }}
-                />
-
-                <div className="mt-6 rounded-lg bg-sand/20 border border-line p-4">
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <p className="text-sm font-medium text-ink">Email verification</p>
-                      <p className="mt-0.5 text-xs text-ink/50">
-                        {profile.emailVerified
-                          ? 'Your email address is confirmed.'
-                          : 'Confirm your email to secure your account.'}
-                      </p>
-                    </div>
-                    {profile.emailVerified ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-moss">
-                        <BadgeCheck className="w-4 h-4" />
-                        Verified
-                      </span>
-                    ) : (
-                      <motion.button
-                        onClick={() => void handleResend()}
-                        disabled={saving}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-ink/20 text-xs font-medium text-ink hover:bg-ink hover:text-canvas transition-colors disabled:opacity-50"
-                      >
-                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                        Resend email
-                      </motion.button>
-                    )}
-                  </div>
-                  <AnimatePresence>
-                    {resendSent && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        className="mt-2 text-xs text-moss"
-                      >
-                        Verification email sent. Check your inbox.
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </FadeIn>
             </div>
-
-            <FadeIn delay={0.2} className="rounded-xl border border-line bg-canvas p-5 mb-8">
-              <h3 className="font-serif text-lg text-ink mb-1">Security</h3>
-              <p className="text-xs text-ink/50 mb-5">
-                Last sign in: {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="new-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-                    New password
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
-                    <input
-                      id="new-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="confirm-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-                    Confirm password
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
-                    <input
-                      id="confirm-password"
-                      type="password"
-                      value={confirm}
-                      onChange={(e) => setConfirm(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-                    />
-                  </div>
-                </div>
-              </div>
-              <AnimatePresence>
-                {(passwordError || passwordSaved) && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className={`mt-3 text-xs ${passwordError ? 'text-clay' : 'text-moss'}`}
-                  >
-                    {passwordError || 'Password updated'}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-              <motion.button
-                onClick={() => void handleChangePassword()}
-                disabled={saving}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium disabled:opacity-50 transition-colors hover:bg-ink/90"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                Change password
-              </motion.button>
-            </FadeIn>
           </>
         ) : null}
       </div>
@@ -379,89 +351,5 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
       <dt className="text-xs font-mono uppercase tracking-wider text-ink/40">{label}</dt>
       <dd className="flex items-center text-sm">{children}</dd>
     </div>
-  );
-}
-
-function NameField({
-  currentName,
-  email,
-  saving,
-  onSave,
-}: {
-  currentName: string;
-  email: string;
-  saving: boolean;
-  onSave: (name: string) => Promise<void>;
-}) {
-  const [name, setName] = useState(currentName);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSave = async () => {
-    setError('');
-    if (!name.trim()) {
-      setError('Name is required');
-      return;
-    }
-    try {
-      await onSave(name.trim());
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch {
-      /* error is shown in the banner above */
-    }
-  };
-
-  return (
-    <>
-      <label htmlFor="profile-name" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-        Full name
-      </label>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <input
-            id="profile-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-          />
-        </div>
-        <motion.button
-          onClick={() => void handleSave()}
-          disabled={saving || name === currentName}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-ink/90"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-          Save
-        </motion.button>
-      </div>
-      <AnimatePresence>
-        {(error || saved) && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className={`mt-1.5 text-xs ${error ? 'text-clay' : 'text-moss'}`}
-          >
-            {error || 'Name updated'}
-          </motion.p>
-        )}
-      </AnimatePresence>
-
-      <label htmlFor="profile-email" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5 mt-6">
-        Email address
-      </label>
-      <div className="relative">
-        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
-        <input
-          id="profile-email"
-          value={email}
-          readOnly
-          className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/20 text-sm text-ink/50 outline-none cursor-not-allowed"
-        />
-      </div>
-    </>
   );
 }

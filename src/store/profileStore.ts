@@ -8,6 +8,7 @@ export type Profile = {
   role: string;
   accountNumber: string;
   emailVerified: boolean;
+  passwordChangedAt: string | null;
   createdAt: string;
   lastSignInAt: string | null;
 };
@@ -53,7 +54,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, account_number, email_verified, created_at')
+        .select('id, full_name, email, role, account_number, email_verified, password_changed_at, created_at')
         .eq('id', user.id)
         .single();
 
@@ -82,6 +83,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
           role: data.role,
           accountNumber: data.account_number ?? '',
           emailVerified,
+          passwordChangedAt: data.password_changed_at ?? null,
           createdAt: data.created_at,
           lastSignInAt: user.last_sign_in_at ?? null,
         },
@@ -137,7 +139,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      set({ saving: false });
+      await supabase
+        .from('profiles')
+        .update({ password_changed_at: new Date().toISOString() })
+        .eq('id', get().profile?.id);
+      set({ saving: false, profile: { ...get().profile!, passwordChangedAt: new Date().toISOString() } });
     } catch (error) {
       set({ saving: false, error: error instanceof Error ? error.message : 'Failed to change password.' });
       throw error;
