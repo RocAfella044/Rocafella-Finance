@@ -8,40 +8,35 @@ export type Stat = {
   change: string;
 };
 
-export type PortfolioPoint = { month: string; value: number };
 export type IncomeExpensePoint = { month: string; income: number; expenses: number };
 export type CategoryPoint = { name: string; value: number };
-export type Order = {
+export type Transaction = {
   id: string;
-  client: string;
-  item: string;
+  description: string;
+  category: string;
   amount: string;
-  status: 'Completed' | 'In Progress' | 'Pending';
+  date: string;
+  type: 'income' | 'expense';
 };
+export type Recipient = { name: string; email: string | null };
 
 type DbTransaction = {
+  id: string;
   type: 'income' | 'expense';
   category: string;
+  description: string;
   amount: number;
   date: string;
 };
 
-type DbSnapshot = { period: string; value: number };
-type DbOrder = {
-  id: string;
-  client: string;
-  item: string;
-  amount: number;
-  status: 'Completed' | 'In Progress' | 'Pending';
-  created_at?: string;
-};
+type DbClient = { name: string; email: string | null };
 
 type DashboardState = {
   stats: Stat[];
-  portfolioData: PortfolioPoint[];
   incomeExpenseData: IncomeExpensePoint[];
   categoryData: CategoryPoint[];
-  recentOrders: Order[];
+  recentTransactions: Transaction[];
+  recipients: Recipient[];
   loading: boolean;
   error: string | null;
   lastUpdated: string | null;
@@ -53,12 +48,12 @@ const currency = (n: number) =>
 
 const pct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 
-function monthLabel(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(`${date}T00:00:00`) : date;
+function monthLabel(date: string): string {
+  const d = new Date(`${date}T00:00:00`);
   return d.toLocaleString('en-US', { month: 'short' });
 }
 
-function buildDashboard(txs: DbTransaction[], snapshots: DbSnapshot[], orders: DbOrder[], clientCount: number) {
+function buildDashboard(txs: DbTransaction[], clients: DbClient[]) {
   const totals = { income: 0, expenses: 0 };
   const incomeByMonth = new Map<string, number>();
   const expensesByMonth = new Map<string, number>();
@@ -87,14 +82,6 @@ function buildDashboard(txs: DbTransaction[], snapshots: DbSnapshot[], orders: D
     .map(([name, value]) => ({ name, value: Math.round(value) }))
     .sort((a, b) => b.value - a.value);
 
-  const orderedSnapshots = [...snapshots].sort(
-    (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime(),
-  );
-  const portfolioData: PortfolioPoint[] = orderedSnapshots.map((s) => ({
-    month: monthLabel(s.period),
-    value: Math.round(s.value),
-  }));
-
   const balance = totals.income - totals.expenses;
   const lastMonth = allMonths.at(-1);
   const prevMonth = allMonths.at(-2);
@@ -102,38 +89,37 @@ function buildDashboard(txs: DbTransaction[], snapshots: DbSnapshot[], orders: D
   const prevNet = prevMonth ? (incomeByMonth.get(prevMonth) ?? 0) - (expensesByMonth.get(prevMonth) ?? 0) : 0;
   const balanceChange = prevNet !== 0 ? ((thisNet - prevNet) / Math.abs(prevNet)) * 100 : 0;
 
-  const activeOrders = orders.filter((o) => o.status !== 'Completed').length;
-  const now = new Date();
-  const thisMonthOrders = orders.filter(
-    (o) => new Date(o.created_at ?? now).getMonth() === now.getMonth(),
-  ).length;
-  const lastMonthOrders = orders.filter((o) => new Date(o.created_at ?? now).getMonth() === now.getMonth() - 1).length;
-
-  const growth =
-    portfolioData.length >= 2
-      ? ((portfolioData.at(-1)!.value - portfolioData[0].value) / portfolioData[0].value) * 100
-      : 0;
-  const lastGrowth =
-    portfolioData.length >= 3
-      ? ((portfolioData.at(-1)!.value - portfolioData.at(-2)!.value) / portfolioData.at(-2)!.value) * 100
-      : growth;
+  const thisIncome = lastMonth ? (incomeByMonth.get(lastMonth) ?? 0) : 0;
+  const prevIncome = prevMonth ? (incomeByMonth.get(prevMonth) ?? 0) : 0;
+  const thisExpense = lastMonth ? (expensesByMonth.get(lastMonth) ?? 0) : 0;
+  const prevExpense = prevMonth ? (expensesByMonth.get(prevMonth) ?? 0) : 0;
+  const incomeChange = prevIncome !== 0 ? ((thisIncome - prevIncome) / Math.abs(prevIncome)) * 100 : 0;
+  const expenseChange = prevExpense !== 0 ? ((thisExpense - prevExpense) / Math.abs(prevExpense)) * 100 : 0;
 
   const stats: Stat[] = [
     { label: 'Total Balance', value: currency(balance), change: `${pct(balanceChange)} this month` },
-    { label: 'Active Orders', value: String(activeOrders), change: `${thisMonthOrders - lastMonthOrders >= 0 ? '+' : ''}${thisMonthOrders - lastMonthOrders} this month` },
-    { label: 'Portfolio Growth', value: pct(growth), change: `${pct(lastGrowth)} this month` },
-    { label: 'Clients', value: String(clientCount), change: '' },
+    { label: 'Total Income', value: currency(totals.income), change: `${pct(incomeChange)} this month` },
+    { label: 'Total Expenses', value: currency(totals.expenses), change: `${pct(expenseChange)} this month` },
   ];
 
-  const recentOrders: Order[] = orders.slice(0, 8).map((o) => ({
-    id: `#${o.id.slice(0, 6).toUpperCase()}`,
-    client: o.client,
-    item: o.item,
-    amount: currency(o.amount),
-    status: o.status,
-  }));
+  const recentTransactions: Transaction[] = [...txs]
+    .reverse()
+    .slice(0, 8)
+    .map((tx) => ({
+      id: tx.id,
+      description: tx.description || tx.category,
+      category: tx.category,
+      amount: currency(tx.amount),
+      date: new Date(`${tx.date}T00:00:00`).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      type: tx.type,
+    }));
 
-  return { stats, portfolioData, incomeExpenseData, categoryData, recentOrders };
+  const recipients: Recipient[] = clients.map((c) => ({ name: c.name, email: c.email }));
+
+  return { stats, incomeExpenseData, categoryData, recentTransactions, recipients };
 }
 
 let realtimeChannel: RealtimeChannel | null = null;
@@ -149,16 +135,6 @@ function attachRealtime(fetch: () => Promise<void>) {
     )
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
-      () => void fetch(),
-    )
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'portfolio_snapshots' },
-      () => void fetch(),
-    )
-    .on(
-      'postgres_changes',
       { event: '*', schema: 'public', table: 'clients' },
       () => void fetch(),
     )
@@ -167,10 +143,10 @@ function attachRealtime(fetch: () => Promise<void>) {
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   stats: [],
-  portfolioData: [],
   incomeExpenseData: [],
   categoryData: [],
-  recentOrders: [],
+  recentTransactions: [],
+  recipients: [],
   loading: false,
   error: null,
   lastUpdated: null,
@@ -189,22 +165,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const [txRes, snapRes, orderRes, clientRes] = await Promise.all([
-        supabase.from('transactions').select('type, category, amount, date').order('date', { ascending: true }),
-        supabase.from('portfolio_snapshots').select('period, value').order('period', { ascending: true }),
-        supabase.from('orders').select('id, client, item, amount, status, created_at').order('created_at', { ascending: false }).limit(20),
-        supabase.from('clients').select('id', { count: 'exact', head: true }),
+      const [txRes, clientRes] = await Promise.all([
+        supabase
+          .from('transactions')
+          .select('id, type, category, description, amount, date')
+          .order('date', { ascending: true }),
+        supabase.from('clients').select('name, email').order('name', { ascending: true }),
       ]);
 
-      const firstError = [txRes, snapRes, orderRes, clientRes].find((r) => r.error)?.error;
+      const firstError = [txRes, clientRes].find((r) => r.error)?.error;
       if (firstError) throw firstError;
 
-      const data = buildDashboard(
-        txRes.data ?? [],
-        snapRes.data ?? [],
-        orderRes.data ?? [],
-        clientRes.count ?? 0,
-      );
+      const data = buildDashboard(txRes.data ?? [], clientRes.data ?? []);
 
       set({ ...data, loading: false, lastUpdated: new Date().toISOString() });
       attachRealtime(() => get().fetchDashboard());

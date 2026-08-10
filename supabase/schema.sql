@@ -43,15 +43,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
     created_at timestamptz not null default now()
   );
 
-  create table if not exists public.portfolio_snapshots (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid not null references auth.users(id) on delete cascade,
-    period date not null,
-    value numeric(12, 2) not null,
-    created_at timestamptz not null default now(),
-    unique (user_id, period)
-  );
-
   create table if not exists public.clients (
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users(id) on delete cascade,
@@ -65,7 +56,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
   alter table public.profiles enable row level security;
   alter table public.transactions enable row level security;
   alter table public.orders enable row level security;
-  alter table public.portfolio_snapshots enable row level security;
   alter table public.clients enable row level security;
 
   drop policy if exists "Users can view own profile" on public.profiles;
@@ -101,19 +91,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
   create policy "Users can delete own orders"
     on public.orders for delete using (auth.uid() = user_id);
 
-  drop policy if exists "Users can view own portfolio snapshots" on public.portfolio_snapshots;
-  create policy "Users can view own portfolio snapshots"
-    on public.portfolio_snapshots for select using (auth.uid() = user_id);
-  drop policy if exists "Users can insert own portfolio snapshots" on public.portfolio_snapshots;
-  create policy "Users can insert own portfolio snapshots"
-    on public.portfolio_snapshots for insert with check (auth.uid() = user_id);
-  drop policy if exists "Users can update own portfolio snapshots" on public.portfolio_snapshots;
-  create policy "Users can update own portfolio snapshots"
-    on public.portfolio_snapshots for update using (auth.uid() = user_id);
-  drop policy if exists "Users can delete own portfolio snapshots" on public.portfolio_snapshots;
-  create policy "Users can delete own portfolio snapshots"
-    on public.portfolio_snapshots for delete using (auth.uid() = user_id);
-
   drop policy if exists "Users can view own clients" on public.clients;
   create policy "Users can view own clients"
     on public.clients for select using (auth.uid() = user_id);
@@ -133,8 +110,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
     on public.transactions (user_id, date);
   create index if not exists orders_user_created_idx
     on public.orders (user_id, created_at desc);
-  create index if not exists snapshots_user_period_idx
-    on public.portfolio_snapshots (user_id, period);
   create index if not exists clients_user_idx
     on public.clients (user_id);
 
@@ -147,9 +122,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
     end if;
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'orders') then
       alter publication supabase_realtime add table public.orders;
-    end if;
-    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'portfolio_snapshots') then
-      alter publication supabase_realtime add table public.portfolio_snapshots;
     end if;
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'clients') then
       alter publication supabase_realtime add table public.clients;
@@ -209,14 +181,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
         ('Transport', 'Travel & fuel', 0.10),
         ('Other', 'Miscellaneous', 0.05)
     ) as c(category, description, weight);
-
-    -- portfolio snapshots
-    insert into public.portfolio_snapshots (user_id, period, value)
-    select
-      new.id,
-      (date_trunc('month', now()) - (n * interval '1 month'))::date,
-      (array[18400.00, 19200.00, 20800.00, 21500.00, 23200.00, 24890.00])[n + 1]
-    from generate_series(5, 0, -1) as n;
 
     -- orders
     insert into public.orders (user_id, client, item, amount, status, created_at) values
