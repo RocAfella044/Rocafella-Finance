@@ -97,12 +97,13 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbD
 
   const stats: Stat[] = [
     { label: 'Total Balance', value: currency(balance), change: `${pct(balanceChange)} this month` },
+    
+    { label: 'Total Expenses', value: currency(totals.expenses), change: `${pct(expenseChange)} this month` },
     {
       label: 'Fixed Deposit',
       value: currency(deposits.reduce((s, d) => s + d.amount, 0)),
       change: `+${currency(deposits.reduce((s, d) => s + (d.amount * d.rate) / 100, 0))} accrued interest`,
-    },
-    { label: 'Total Expenses', value: currency(totals.expenses), change: `${pct(expenseChange)} this month` },
+    }
   ];
 
   const recentTransactions: Transaction[] = [...txs]
