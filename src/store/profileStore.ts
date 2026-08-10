@@ -5,6 +5,7 @@ export type Profile = {
   id: string;
   fullName: string;
   email: string;
+  phone: string;
   role: string;
   accountNumber: string;
   emailVerified: boolean;
@@ -54,7 +55,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, account_number, email_verified, password_changed_at, created_at')
+        .select('id, full_name, email, phone, role, account_number, email_verified, password_changed_at, created_at')
         .eq('id', user.id)
         .single();
 
@@ -80,6 +81,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
           id: data.id,
           fullName: data.full_name ?? '',
           email: data.email,
+          phone: data.phone ?? '',
           role: data.role,
           accountNumber: data.account_number ?? '',
           emailVerified,

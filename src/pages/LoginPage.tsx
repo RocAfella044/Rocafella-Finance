@@ -14,7 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -24,10 +24,14 @@ export default function LoginPage() {
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Enter a valid email address';
+    const value = identifier.trim();
+    if (!value) {
+      newErrors.email = 'Email or phone number is required';
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) &&
+      !/^\+?[0-9]{7,15}$/.test(value)
+    ) {
+      newErrors.email = 'Enter a valid email address or phone number';
     }
     if (!password) {
       newErrors.password = 'Password is required';
@@ -45,7 +49,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(identifier.trim(), password);
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "We couldn't sign you in. Check your details and try again.");
@@ -74,14 +78,14 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-5">
         <FadeIn>
           <FloatingField
-            id="email"
-            type="email"
-            label="Email address"
-            value={email}
-            onChange={setEmail}
+            id="identifier"
+            type="text"
+            label="Email or mobile number"
+            value={identifier}
+            onChange={setIdentifier}
             icon={<Mail className="w-4.5 h-4.5" />}
             error={errors.email}
-            autoComplete="email"
+            autoComplete="username"
           />
         </FadeIn>
 

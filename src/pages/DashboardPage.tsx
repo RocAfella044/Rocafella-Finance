@@ -113,21 +113,17 @@ export default function DashboardPage() {
               <FadeIn delay={0.1} className="rounded-xl border border-line bg-canvas p-5">
                 <h3 className="font-serif text-lg text-ink mb-4">Quick Transfer</h3>
                 <label htmlFor="transfer-to" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-                  Transfer to
+                  Transfer to mobile number
                 </label>
-                <select
+                <input
                   id="transfer-to"
+                  type="tel"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
+                  placeholder="+1234567890"
                   className="w-full px-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-                >
-                  <option value="">Select a recipient</option>
-                  {recipients.map((r) => (
-                    <option key={r.name} value={r.name}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                />
+                <p className="mt-2 text-xs text-ink/50">Send funds quickly to a verified mobile recipient.</p>
 
                 <label htmlFor="transfer-amount" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5 mt-4">
                   Amount

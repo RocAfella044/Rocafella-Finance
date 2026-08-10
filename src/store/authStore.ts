@@ -8,8 +8,8 @@ type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
   initialized: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -26,29 +26,49 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       initialized: false,
 
-      login: async (email, password) => {
+      login: async (identifier, password) => {
         if (!isSupabaseConfigured) {
           throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
         }
+
+        const value = identifier.trim();
+        let email = value;
+
+        if (/^\+?[0-9]{7,15}$/.test(value)) {
+          const { data, error } = await supabase.from('profiles').select('email').eq('phone', value).single();
+          if (error || !data?.email) {
+            throw new Error('No account found for that phone number.');
+          }
+          email = data.email;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          throw new Error('Enter a valid email address or phone number.');
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (!data.user) throw new Error('Sign in failed. Please try again.');
         set({ user: mapUser(data.user), isAuthenticated: true });
       },
 
-      register: async (name, email, password) => {
+      register: async (name, email, password, phone) => {
         if (!isSupabaseConfigured) {
           throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
         }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name } },
+          options: { data: { full_name: name, phone } },
         });
         if (error) throw error;
         if (!data.session || !data.user) {
           throw new Error('Account created. Check your email to confirm your signup, then sign in.');
         }
+
+        const profileUpdate = await supabase.from('profiles').update({ phone }).eq('id', data.user.id);
+        if (profileUpdate.error) {
+          throw profileUpdate.error;
+        }
+
         set({ user: mapUser(data.user), isAuthenticated: true });
       },
 

@@ -9,6 +9,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   email text not null,
+  phone text unique,
   role text not null default 'client',
   account_number text unique,
   email_verified boolean not null default false,
@@ -17,6 +18,7 @@ create table if not exists public.profiles (
 );
 
 -- migrate existing databases (create table if not exists does not alter)
+alter table public.profiles add column if not exists phone text unique;
 alter table public.profiles add column if not exists account_number text unique;
 alter table public.profiles add column if not exists email_verified boolean not null default false;
 alter table public.profiles add column if not exists password_changed_at timestamptz;
@@ -177,11 +179,12 @@ alter table public.profiles add column if not exists password_changed_at timesta
     end loop;
 
     -- profile
-    insert into public.profiles (id, full_name, email, role, account_number, email_verified)
+    insert into public.profiles (id, full_name, email, phone, role, account_number, email_verified)
     values (
       new.id,
       coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
       new.email,
+      new.raw_user_meta_data->>'phone',
       'client',
       new_account,
       new.email_confirmed_at is not null

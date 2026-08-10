@@ -231,7 +231,10 @@ export default function ProfilePage() {
                   <DetailRow label="Email address">
                     <span className="text-ink/70">{profile.email}</span>
                   </DetailRow>
-                   <DetailRow label="Role">
+                  <DetailRow label="Mobile number">
+                    <span className="text-ink/70">{profile.phone || '—'}</span>
+                  </DetailRow>
+                  <DetailRow label="Role">
                     <span className="capitalize text-ink/70">{profile.role}</span>
                   </DetailRow>
                 </dl>

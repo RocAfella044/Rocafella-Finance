@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock, Phone } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { AuthShell } from '../Components/Auth/AuthShell';
 import { FloatingField, IconSwap, StrengthBar, SubmitError, SubmitButton, SocialButtons } from '../Components/Auth/fields';
 import { FadeIn } from '../lib/FadeIn';
 import { Divider } from '../lib/Divider';
 
-type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'confirmPassword', string>>;
+type FormErrors = Partial<Record<'name' | 'email' | 'phone' | 'password' | 'confirmPassword', string>>;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export default function RegisterPage() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,6 +35,11 @@ export default function RegisterPage() {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = 'Enter a valid email address';
+    }
+    if (!phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[0-9]{7,15}$/.test(phone.trim())) {
+      newErrors.phone = 'Enter a valid phone number';
     }
     if (!password) {
       newErrors.password = 'Password is required';
@@ -56,7 +62,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name.trim(), email, password);
+      await register(name.trim(), email, password, phone.trim());
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "We couldn't create your account. Please try again.");
@@ -97,6 +103,19 @@ export default function RegisterPage() {
         </FadeIn>
 
         <FadeIn delay={0.04}>
+          <FloatingField
+            id="phone"
+            type="tel"
+            label="Mobile number"
+            value={phone}
+            onChange={setPhone}
+            icon={<Phone className="w-4.5 h-4.5" />}
+            error={errors.phone}
+            autoComplete="tel"
+          />
+        </FadeIn>
+
+        <FadeIn delay={0.08}>
           <FloatingField
             id="email"
             type="email"
