@@ -129,7 +129,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             onClick={handleLogout}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-clay/30 text-sm text-clay hover:bg-clay hover:text-canvas hover:border-clay transition-colors"
+            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-clay/30 text-sm text-clay cursor-pointer transition-all hover:bg-clay hover:text-canvas hover:border-clay hover:shadow-[0_0_28px_-6px_rgba(194,122,111,0.5)]"
           >
             <LogOut className="w-4.5 h-4.5 shrink-0" />
             Sign out
