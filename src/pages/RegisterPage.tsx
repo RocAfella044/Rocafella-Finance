@@ -38,7 +38,7 @@ export default function RegisterPage() {
     }
     if (!phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[0-9]{7,15}$/.test(phone.trim())) {
+    } else if (!/^\+977[0-9]{10}$/.test(phone.trim())) {
       newErrors.phone = 'Enter a valid phone number';
     }
     if (!password) {

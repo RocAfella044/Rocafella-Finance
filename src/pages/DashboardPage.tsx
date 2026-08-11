@@ -119,7 +119,7 @@ export default function DashboardPage() {
                   type="tel"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="+1234567890"
+                  placeholder="+97798XXXXXXXX"
                   className="w-full px-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
                 />
                 <p className="mt-2 text-xs text-ink/50">Send funds quickly to a verified mobile recipient.</p>

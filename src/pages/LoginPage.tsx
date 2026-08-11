@@ -29,7 +29,7 @@ export default function LoginPage() {
       newErrors.email = 'Email or phone number is required';
     } else if (
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) &&
-      !/^\+?[0-9]{7,15}$/.test(value)
+      !/^\+977[0-9]{10}$/.test(value)
     ) {
       newErrors.email = 'Enter a valid email address or phone number';
     }
