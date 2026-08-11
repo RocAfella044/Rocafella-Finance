@@ -128,7 +128,7 @@ export default function DashboardPage() {
                   Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/40">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/40">रु</span>
                   <input
                     id="transfer-amount"
                     type="number"
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                   <YAxis tick={{ fontSize: 12, fill: '#8b8983' }} axisLine={false} tickLine={false} />
                   <Tooltip
                     contentStyle={{ background: '#1c1917', border: 'none', borderRadius: 8, fontSize: 13, color: '#faf7f2' }}
-                    formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Net balance']}
+                    formatter={(value) => [`रु${Number(value).toLocaleString()}`, 'Net balance']}
                   />
                   <Area type="monotone" dataKey="net" stroke="#8aa68a" strokeWidth={2} fill="url(#netGrad)" />
                 </AreaChart>

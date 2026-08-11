@@ -46,7 +46,7 @@ type DashboardState = {
 };
 
 const currency = (n: number) =>
-  n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  n.toLocaleString('en-NP', { style: 'currency', currency: 'NPR' });
 
 const pct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 
