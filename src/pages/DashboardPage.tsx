@@ -119,7 +119,7 @@ export default function DashboardPage() {
                   type="tel"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="+97798XXXXXXXX"
+                  placeholder="+977"
                   className="w-full px-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
                 />
                 <p className="mt-2 text-xs text-ink/50">Send funds quickly to a verified mobile recipient.</p>
@@ -128,14 +128,14 @@ export default function DashboardPage() {
                   Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/40">रु</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/40">Rs</span>
                   <input
                     id="transfer-amount"
                     type="number"
                     min="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
+                    placeholder=""
                     className="w-full pl-8 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
                   />
                 </div>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
                           : 'border-ink/15 text-ink/60 hover:border-ink/40 hover:text-ink'
                       }`}
                     >
-                      ${q.toLocaleString()}
+                      NPR {q.toLocaleString()}
                     </button>
                   ))}
                 </div>
