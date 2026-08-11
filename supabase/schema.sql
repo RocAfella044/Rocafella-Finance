@@ -1,9 +1,3 @@
-  -- ============================================================
-  -- Rocafella Finance - Supabase schema
-  -- Run this in the Supabase SQL Editor (Dashboard > SQL > New query)
-  -- ============================================================
-
-  -- ---------- Tables ----------
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -269,6 +263,48 @@ alter table public.profiles add column if not exists password_changed_at timesta
   create trigger on_auth_user_email_confirmed
     after update of email_confirmed_at on auth.users
     for each row execute procedure public.sync_email_verified();
+
+  create or replace function public.send_transfer(
+    p_recipient_phone text,
+    p_amount numeric
+  )
+  returns table (success boolean, message text)
+  language plpgsql
+  security definer set search_path = public
+  as $$
+  declare
+    v_recipient_id uuid;
+    v_recipient_name text;
+    v_sender_id uuid := auth.uid();
+  begin
+    if v_sender_id is null then
+      return query select false, 'You must be signed in to transfer.';
+      return;
+    end if;
+
+    select id, full_name into v_recipient_id, v_recipient_name
+    from public.profiles
+    where phone = p_recipient_phone
+    limit 1;
+
+    if v_recipient_id is null then
+      return query select false, 'No account found for that phone number. Transfer failed.';
+      return;
+    end if;
+
+    if v_recipient_id = v_sender_id then
+      return query select false, 'You cannot transfer to your own account.';
+      return;
+    end if;
+
+    insert into public.transactions (user_id, type, category, description, amount, date)
+    values
+      (v_sender_id, 'expense', 'Transfer', format('Transfer to %s (%s)', v_recipient_name, p_recipient_phone), p_amount, current_date),
+      (v_recipient_id, 'income', 'Transfer', format('Transfer from %s', p_recipient_phone), p_amount, current_date);
+
+    return query select true, format('Transfer of %s sent to %s.', p_amount, v_recipient_name);
+  end;
+  $$;
 
   -- ---------- Backfill for existing users ----------
 

@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthState>()(
         const value = identifier.trim();
         let email = value;
 
-        if (/^\+977[0-9]{10}$/.test(value)) {
-          const { data, error } = await supabase.from('profiles').select('email').eq('phone', value).single();
+        if (/^[0-9]{10}$/.test(value)) {
+          const { data, error } = await supabase.from('profiles').select('email').eq('phone', `+977${value}`).single();
           if (error || !data?.email) {
             throw new Error('No account found for that phone number.');
           }

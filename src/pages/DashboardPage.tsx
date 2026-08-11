@@ -6,7 +6,6 @@ import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
-
 const statIcons = [ PiggyBank, ShoppingCart];
 
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
@@ -22,21 +21,37 @@ export default function DashboardPage() {
   const error = useDashboardStore((s) => s.error);
   const lastUpdated = useDashboardStore((s) => s.lastUpdated);
   const fetchDashboard = useDashboardStore((s) => s.fetchDashboard);
+  const sendTransfer = useDashboardStore((s) => s.sendTransfer);
 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
-  const [transferSent, setTransferSent] = useState(false);
+  const [transferStatus, setTransferStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [transferMessage, setTransferMessage] = useState('');
 
   useEffect(() => {
     void fetchDashboard();
   }, [fetchDashboard]);
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (!recipient || !amount || Number(amount) <= 0) return;
-    setTransferSent(true);
-    setRecipient('');
-    setAmount('');
-    setTimeout(() => setTransferSent(false), 2500);
+    if (!/^[0-9]{10}$/.test(recipient.trim())) {
+      setTransferStatus('error');
+      setTransferMessage('Enter a valid 10-digit Nepali mobile number.');
+      return;
+    }
+
+    setTransferStatus('sending');
+    setTransferMessage('');
+    try {
+      const message = await sendTransfer(`+977${recipient.trim()}`, Number(amount));
+      setTransferStatus('success');
+      setTransferMessage(message);
+      setRecipient('');
+      setAmount('');
+    } catch (error) {
+      setTransferStatus('error');
+      setTransferMessage(error instanceof Error ? error.message : 'Transfer failed.');
+    }
   };
 
   return (
@@ -119,7 +134,7 @@ export default function DashboardPage() {
                   type="tel"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="+977"
+                  placeholder=""
                   className="w-full px-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
                 />
                 <p className="mt-2 text-xs text-ink/50">Send funds quickly to a verified mobile recipient.</p>
@@ -157,24 +172,39 @@ export default function DashboardPage() {
                 </div>
 
                 <motion.button
-                  onClick={handleTransfer}
-                  disabled={!recipient || !amount || Number(amount) <= 0}
+                  onClick={() => void handleTransfer()}
+                  disabled={!recipient || !amount || Number(amount) <= 0 || transferStatus === 'sending'}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className="mt-5 flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-ink/90"
                 >
-                  <Send className="w-4 h-4" />
-                  Transfer
+                  {transferStatus === 'sending' ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  {transferStatus === 'sending' ? 'Sending…' : 'Transfer'}
                 </motion.button>
                 <AnimatePresence>
-                  {transferSent && (
+                  {transferStatus === 'success' && (
                     <motion.p
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       className="mt-3 text-xs text-moss"
                     >
-                      Transfer sent successfully.
+                      {transferMessage}
+                    </motion.p>
+                  )}
+                  {transferStatus === 'error' && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="mt-3 flex items-start gap-1.5 text-xs text-clay"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      {transferMessage}
                     </motion.p>
                   )}
                 </AnimatePresence>

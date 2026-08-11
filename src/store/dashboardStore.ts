@@ -43,6 +43,7 @@ type DashboardState = {
   error: string | null;
   lastUpdated: string | null;
   fetchDashboard: () => Promise<void>;
+  sendTransfer: (phone: string, amount: number) => Promise<string>;
 };
 
 const currency = (n: number) =>
@@ -196,5 +197,24 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to load dashboard data.',
       });
     }
+  },
+
+  sendTransfer: async (phone, amount) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
+    }
+
+    const { data, error } = await supabase.rpc('send_transfer', {
+      p_recipient_phone: phone,
+      p_amount: amount,
+    });
+
+    if (error) throw error;
+
+    const result = data?.[0];
+    if (!result?.success) throw new Error(result?.message ?? 'Transfer failed.');
+
+    await get().fetchDashboard();
+    return result.message;
   },
 }));

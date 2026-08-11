@@ -38,8 +38,8 @@ export default function RegisterPage() {
     }
     if (!phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\+977[0-9]{10}$/.test(phone.trim())) {
-      newErrors.phone = 'Enter a valid phone number';
+    } else if (!/^[0-9]{10}$/.test(phone.trim())) {
+      newErrors.phone = 'Enter a valid 10-digit phone number';
     }
     if (!password) {
       newErrors.password = 'Password is required';
@@ -62,7 +62,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name.trim(), email, password, phone.trim());
+      await register(name.trim(), email, password, `+977${phone.trim()}`);
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "We couldn't create your account. Please try again.");
