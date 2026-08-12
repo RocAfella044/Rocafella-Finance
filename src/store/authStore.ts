@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export type User = { id: string; email: string; name?: string };
@@ -19,12 +18,10 @@ const mapUser = (u: { id: string; email?: string; user_metadata?: Record<string,
   name: (u.user_metadata?.full_name as string | undefined) ?? undefined,
 });
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-      initialized: false,
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  initialized: false,
 
       login: async (identifier, password) => {
         if (!isSupabaseConfigured) {
@@ -77,11 +74,6 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, isAuthenticated: false });
       },
     }),
-    {
-      name: 'rocafella_user',
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
-    },
-  ),
 );
 
 if (isSupabaseConfigured) {

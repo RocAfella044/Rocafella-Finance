@@ -275,6 +275,7 @@ alter table public.profiles add column if not exists password_changed_at timesta
   declare
     v_recipient_id uuid;
     v_recipient_name text;
+    v_balance numeric;
     v_sender_id uuid := auth.uid();
   begin
     if v_sender_id is null then
@@ -294,6 +295,16 @@ alter table public.profiles add column if not exists password_changed_at timesta
 
     if v_recipient_id = v_sender_id then
       return query select false, 'You cannot transfer to your own account.';
+      return;
+    end if;
+
+    select coalesce(sum(case when type = 'income' then amount else -amount end), 0)
+    into v_balance
+    from public.transactions
+    where user_id = v_sender_id;
+
+    if v_balance < p_amount then
+      return query select false, format('Not enough money in your account. Available balance: %s.', round(v_balance, 2));
       return;
     end if;
 
