@@ -154,8 +154,8 @@ alter table public.profiles add column if not exists password_changed_at timesta
   end $$;
 
   -- ============================================================
-  -- Seed demo data for every newly created user.
-  -- Every signup automatically gets realistic dashboard data.
+  -- New users start with a fresh, empty account.
+  -- No seeded transactions, orders, clients or deposits.
   -- ============================================================
 
   create or replace function public.handle_new_user()
@@ -183,58 +183,6 @@ alter table public.profiles add column if not exists password_changed_at timesta
       new_account,
       new.email_confirmed_at is not null
     );
-
-    -- income, one per month for the last 6 months
-    insert into public.transactions (user_id, type, category, description, amount, date)
-    select
-      new.id, 'income', 'Sales', 'Monthly revenue',
-      (array[4200.00, 3800.00, 5100.00, 4600.00, 5400.00, 6200.00])[n + 1],
-      (date_trunc('month', now()) - (n * interval '1 month'))::date
-    from generate_series(5, 0, -1) as n;
-
-    -- expenses split across categories per month
-    insert into public.transactions (user_id, type, category, description, amount, date)
-    select
-      new.id, 'expense', c.category, c.description,
-      round(((array[2800.00, 3100.00, 2600.00, 3300.00, 2900.00, 3500.00])[n + 1] * c.weight)::numeric, 2),
-      (date_trunc('month', now()) - (n * interval '1 month'))::date
-    from generate_series(5, 0, -1) as n
-    cross join (
-      values
-        ('Shopping', 'Boutique purchases', 0.40),
-        ('Bills', 'Utilities & rent', 0.25),
-        ('Food', 'Dining & groceries', 0.20),
-        ('Transport', 'Travel & fuel', 0.10),
-        ('Other', 'Miscellaneous', 0.05)
-    ) as c(category, description, weight);
-
-    -- orders
-    insert into public.orders (user_id, client, item, amount, status, created_at) values
-      (new.id, 'Sarah Johnson', 'Summer Collection', 1200.00, 'Completed', now() - interval '6 days'),
-      (new.id, 'Marcus Lee', 'Tailored Suit', 3400.00, 'In Progress', now() - interval '4 days'),
-      (new.id, 'Elena Rodriguez', 'Accessories Set', 680.00, 'Completed', now() - interval '3 days'),
-      (new.id, 'David Kim', 'Winter Coat', 2100.00, 'Pending', now() - interval '1 day'),
-      (new.id, 'Amara Okafor', 'Custom Dress', 1850.00, 'In Progress', now() - interval '5 hours');
-
-    -- clients
-    insert into public.clients (user_id, name, email) values
-      (new.id, 'Sarah Johnson', 'sarah@example.com'),
-      (new.id, 'Marcus Lee', 'marcus@example.com'),
-      (new.id, 'Elena Rodriguez', 'elena@example.com'),
-      (new.id, 'David Kim', 'david@example.com'),
-      (new.id, 'Amara Okafor', 'amara@example.com'),
-      (new.id, 'Liam Chen', 'liam@example.com'),
-      (new.id, 'Nadia Hassan', 'nadia@example.com'),
-      (new.id, 'Oliver Wright', 'oliver@example.com'),
-      (new.id, 'Sofia Rossi', 'sofia@example.com'),
-      (new.id, 'Mateo Alvarez', 'mateo@example.com'),
-      (new.id, 'Isla Murray', 'isla@example.com'),
-      (new.id, 'Hiro Tanaka', 'hiro@example.com');
-
-    -- fixed deposits
-    insert into public.deposits (user_id, label, amount, rate, maturity_date) values
-      (new.id, 'Fixed Deposit', 12000.00, 4.50, now() + interval '1 year'),
-      (new.id, 'Gold Saver', 5000.00, 5.25, now() + interval '2 years');
 
     return new;
   end;
@@ -285,7 +233,8 @@ alter table public.profiles add column if not exists password_changed_at timesta
 
     select id, full_name into v_recipient_id, v_recipient_name
     from public.profiles
-    where phone = p_recipient_phone
+    where regexp_replace(regexp_replace(regexp_replace(phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '')
+        = regexp_replace(regexp_replace(regexp_replace(p_recipient_phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '')
     limit 1;
 
     if v_recipient_id is null then
@@ -304,7 +253,7 @@ alter table public.profiles add column if not exists password_changed_at timesta
     where user_id = v_sender_id;
 
     if v_balance < p_amount then
-      return query select false, format('Not enough money in your account. Available balance: %s.', round(v_balance, 2));
+      return query select false, format('Insufficient balance. Available balance: %s.', round(v_balance, 2));
       return;
     end if;
 
@@ -318,6 +267,11 @@ alter table public.profiles add column if not exists password_changed_at timesta
   $$;
 
   -- ---------- Backfill for existing users ----------
+
+  -- normalize older phones stored without the +977 country code
+  update public.profiles
+  set phone = '+977' || phone
+  where phone ~ '^[0-9]{10}$';
 
   update public.profiles p
   set email_verified = u.email_confirmed_at is not null
