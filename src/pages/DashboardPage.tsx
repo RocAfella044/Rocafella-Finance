@@ -39,6 +39,11 @@ export default function DashboardPage() {
       setTransferMessage('Enter a valid 10-digit Nepali mobile number.');
       return;
     }
+    if (Number(amount) <= 50) {
+      setTransferStatus('error');
+      setTransferMessage('Transfer amount must be more than NPR 50.');
+      return;
+    }
 
     setTransferStatus('sending');
     setTransferMessage('');

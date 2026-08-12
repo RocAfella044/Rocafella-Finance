@@ -231,6 +231,11 @@ alter table public.profiles add column if not exists password_changed_at timesta
       return;
     end if;
 
+    if p_amount <= 50 then
+      return query select false, 'Transfer amount must be more than NPR 50.';
+      return;
+    end if;
+
     select id, full_name into v_recipient_id, v_recipient_name
     from public.profiles
     where regexp_replace(regexp_replace(regexp_replace(phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '')
