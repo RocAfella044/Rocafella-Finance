@@ -8,7 +8,8 @@ type AuthState = {
   isAuthenticated: boolean;
   initialized: boolean;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
+  resendVerificationEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -32,7 +33,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
         let email = value;
 
         if (/^[0-9]{10}$/.test(value)) {
-          const { data, error } = await supabase.from('profiles').select('email').eq('phone', `+977${value}`).single();
+          const { data, error } = await supabase.from('profiles').select('email').eq('phone', `${value}`).single();
           if (error || !data?.email) {
             throw new Error('No account found for that phone number.');
           }
@@ -44,6 +45,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (!data.user) throw new Error('Sign in failed. Please try again.');
+
+        if (!data.user.email_confirmed_at) {
+          await supabase.auth.signOut();
+          throw new Error('Please verify your email before signing in. Check your inbox for the confirmation link.');
+        }
+
         set({ user: mapUser(data.user), isAuthenticated: true });
       },
 
@@ -57,16 +64,24 @@ export const useAuthStore = create<AuthState>()((set) => ({
           options: { data: { full_name: name, phone } },
         });
         if (error) throw error;
-        if (!data.session || !data.user) {
-          throw new Error('Account created. Check your email to confirm your signup, then sign in.');
+        if (!data.user) {
+          throw new Error('Account creation failed. Please try again.');
         }
 
-        const profileUpdate = await supabase.from('profiles').update({ phone }).eq('id', data.user.id);
-        if (profileUpdate.error) {
-          throw profileUpdate.error;
+        if (data.session) {
+          set({ user: mapUser(data.user), isAuthenticated: true });
+          return false;
         }
 
-        set({ user: mapUser(data.user), isAuthenticated: true });
+        return true;
+      },
+
+      resendVerificationEmail: async (email) => {
+        if (!isSupabaseConfigured) {
+          throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
+        }
+        const { error } = await supabase.auth.resend({ type: 'signup', email });
+        if (error) throw error;
       },
 
       logout: async () => {
@@ -77,17 +92,24 @@ export const useAuthStore = create<AuthState>()((set) => ({
 );
 
 if (isSupabaseConfigured) {
-  supabase.auth.getSession().then(({ data }) => {
+  const isVerified = (user: { email_confirmed_at?: string | null } | undefined) =>
+    Boolean(user?.email_confirmed_at);
+
+  supabase.auth.getSession().then(async ({ data }) => {
     if (data.session?.user) {
-      useAuthStore.setState({ user: mapUser(data.session.user), isAuthenticated: true });
+      if (isVerified(data.session.user)) {
+        useAuthStore.setState({ user: mapUser(data.session.user), isAuthenticated: true });
+      } else {
+        await supabase.auth.signOut();
+      }
     }
     useAuthStore.setState({ initialized: true });
   });
 
   supabase.auth.onAuthStateChange((_event, session) => {
     useAuthStore.setState({
-      user: session?.user ? mapUser(session.user) : null,
-      isAuthenticated: Boolean(session?.user),
+      user: session?.user && isVerified(session.user) ? mapUser(session.user) : null,
+      isAuthenticated: Boolean(session?.user && isVerified(session.user)),
       initialized: true,
     });
   });

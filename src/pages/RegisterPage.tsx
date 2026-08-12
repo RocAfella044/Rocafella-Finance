@@ -62,7 +62,11 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name.trim(), email, password, `+977${phone.trim()}`);
+      const needsEmailVerification = await register(name.trim(), email, password, `+977${phone.trim()}`);
+      if (needsEmailVerification) {
+        navigate('/verify-email', { replace: true, state: { email } });
+        return;
+      }
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "We couldn't create your account. Please try again.");
