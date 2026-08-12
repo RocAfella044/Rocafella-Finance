@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type Stat = {
@@ -98,13 +98,12 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbD
 
   const stats: Stat[] = [
     { label: 'Total Balance', value: currency(balance), change: `${pct(balanceChange)} this month` },
-    
     { label: 'Total Expenses', value: currency(totals.expenses), change: `${pct(expenseChange)} this month` },
     {
       label: 'Fixed Deposit',
       value: currency(deposits.reduce((s, d) => s + d.amount, 0)),
       change: `+${currency(deposits.reduce((s, d) => s + (d.amount * d.rate) / 100, 0))} accrued interest`,
-    }
+    },
   ];
 
   const recentTransactions: Transaction[] = [...txs]
@@ -163,7 +162,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   fetchDashboard: async () => {
     if (!isSupabaseConfigured) {
-      set({ error: 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.' });
+      set({ error: SUPABASE_CONFIG_ERROR });
       return;
     }
 
@@ -201,7 +200,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   sendTransfer: async (phone, amount) => {
     if (!isSupabaseConfigured) {
-      throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
+      throw new Error(SUPABASE_CONFIG_ERROR);
     }
 
     const { data, error } = await supabase.rpc('send_transfer', {

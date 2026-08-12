@@ -212,6 +212,15 @@ alter table public.profiles add column if not exists password_changed_at timesta
     after update of email_confirmed_at on auth.users
     for each row execute procedure public.sync_email_verified();
 
+  -- normalize a phone number to plain digits, ignoring country code and leading zeros
+  create or replace function public.normalize_phone(p_phone text)
+  returns text
+  language sql
+  immutable
+  as $$
+    select regexp_replace(regexp_replace(regexp_replace(p_phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '');
+  $$;
+
   create or replace function public.send_transfer(
     p_recipient_phone text,
     p_amount numeric
@@ -238,8 +247,7 @@ alter table public.profiles add column if not exists password_changed_at timesta
 
     select id, full_name into v_recipient_id, v_recipient_name
     from public.profiles
-    where regexp_replace(regexp_replace(regexp_replace(phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '')
-        = regexp_replace(regexp_replace(regexp_replace(p_recipient_phone, '[^0-9]', '', 'g'), '^977', ''), '^0+', '')
+    where normalize_phone(phone) = normalize_phone(p_recipient_phone)
     limit 1;
 
     if v_recipient_id is null then

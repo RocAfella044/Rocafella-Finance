@@ -6,6 +6,7 @@ import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
+import { isValidPhone } from '../lib/validation';
 const statIcons = [ PiggyBank, ShoppingCart];
 
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
@@ -34,7 +35,7 @@ export default function DashboardPage() {
 
   const handleTransfer = async () => {
     if (!recipient || !amount || Number(amount) <= 0) return;
-    if (!/^[0-9]{10}$/.test(recipient.trim())) {
+    if (!isValidPhone(recipient)) {
       setTransferStatus('error');
       setTransferMessage('Enter a valid 10-digit Nepali mobile number.');
       return;

@@ -6,6 +6,7 @@ import { AuthShell } from '../Components/Auth/AuthShell';
 import { FloatingField, IconSwap, StrengthBar, SubmitError, SubmitButton, SocialButtons } from '../Components/Auth/fields';
 import { FadeIn } from '../lib/FadeIn';
 import { Divider } from '../lib/Divider';
+import { isValidEmail, isValidPhone } from '../lib/validation';
 
 type FormErrors = Partial<Record<'name' | 'email' | 'phone' | 'password' | 'confirmPassword', string>>;
 
@@ -33,12 +34,12 @@ export default function RegisterPage() {
     }
     if (!email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    } else if (!isValidEmail(email)) {
       newErrors.email = 'Enter a valid email address';
     }
     if (!phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^[0-9]{10}$/.test(phone.trim())) {
+    } else if (!isValidPhone(phone)) {
       newErrors.phone = 'Enter a valid 10-digit phone number';
     }
     if (!password) {

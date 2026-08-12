@@ -7,6 +7,7 @@ import { AuthShell } from '../Components/Auth/AuthShell';
 import { FloatingField, IconSwap, SubmitError, SubmitButton, SocialButtons } from '../Components/Auth/fields';
 import { FadeIn } from '../lib/FadeIn';
 import { Divider } from '../lib/Divider';
+import { isValidEmail, isValidPhone } from '../lib/validation';
 
 type FormErrors = Partial<Record<'email' | 'password', string>>;
 
@@ -27,10 +28,7 @@ export default function LoginPage() {
     const value = identifier.trim();
     if (!value) {
       newErrors.email = 'Email or phone number is required';
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) &&
-      !/^[0-9]{10}$/.test(value)
-    ) {
+    } else if (!isValidEmail(value) && !isValidPhone(value)) {
       newErrors.email = 'Enter a valid email address or phone number';
     }
     if (!password) {
