@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BadgeCheck,
@@ -6,7 +7,7 @@ import {
   Check,
   Copy,
   CreditCard,
-  KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock,
+  KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock, ChevronRight,
 } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
@@ -18,31 +19,19 @@ const roleColor: Record<string, string> = {
   client: 'text-moss bg-moss/10',
 };
 
-const PASSWORD_LOCK_MS = 7 * 24 * 60 * 60 * 1000;
-
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const profile = useProfileStore((s) => s.profile);
   const counts = useProfileStore((s) => s.counts);
   const loading = useProfileStore((s) => s.loading);
-  const saving = useProfileStore((s) => s.saving);
   const error = useProfileStore((s) => s.error);
   const fetchProfile = useProfileStore((s) => s.fetchProfile);
 
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     void fetchProfile();
   }, [fetchProfile]);
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60000);
-    return () => clearInterval(id);
-  }, []);
 
   const initials = useMemo(() => {
     if (!profile) return 'U';
@@ -58,40 +47,11 @@ export default function ProfilePage() {
     ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : '';
 
-  const changedAt = profile?.passwordChangedAt ? new Date(profile.passwordChangedAt).getTime() : null;
-  const passwordLock = changedAt !== null && changedAt + PASSWORD_LOCK_MS > now ? { availableAt: changedAt + PASSWORD_LOCK_MS } : null;
-
   const handleCopy = () => {
     if (!profile?.accountNumber) return;
     void navigator.clipboard.writeText(profile.accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
-  };
-
-  const handleChangePassword = async () => {
-    setPasswordError('');
-    setPasswordSaved(false);
-    if (!password) {
-      setPasswordError('New password is required');
-      return;
-    }
-    if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      return;
-    }
-    if (password !== confirm) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-    try {
-      await useProfileStore.getState().changePassword(password);
-      setPassword('');
-      setConfirm('');
-      setPasswordSaved(true);
-      setTimeout(() => setPasswordSaved(false), 2000);
-    } catch {
-      /* error shown via store */
-    }
   };
 
   return (
@@ -246,83 +206,26 @@ export default function ProfilePage() {
                   <p className="text-xs text-ink/50 mb-5">
                     Last sign in: {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
                   </p>
-                {passwordLock ? (
-                  <div className="rounded-lg bg-sand/20 border border-line p-4">
-                    <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                      <Clock className="w-4 h-4 text-clay" />
-                      Password change locked
-                    </p>
-                    <p className="mt-1 text-xs text-ink/50">
-                      For your security, you can change your password again on{' '}
-                      <span className="font-medium text-ink">
-                        {new Date(passwordLock.availableAt).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </span>
-                      , 1 week after your last change.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label htmlFor="new-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-                          New password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
-                          <input
-                            id="new-password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="confirm-password" className="block text-xs font-mono uppercase tracking-wider text-ink/40 mb-1.5">
-                          Confirm password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
-                          <input
-                            id="confirm-password"
-                            type="password"
-                            value={confirm}
-                            onChange={(e) => setConfirm(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-line bg-sand/30 text-sm text-ink outline-none focus:border-ink transition-colors"
-                          />
-                        </div>
-                      </div>
+                  <div className="rounded-lg border border-line bg-sand/20 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
+                        <KeyRound className="w-4 h-4 text-clay" />
+                        Change password
+                      </p>
+                      <p className="mt-1 text-xs text-ink/50">
+                        Update your account password for security.
+                      </p>
                     </div>
-                    <AnimatePresence>
-                      {(passwordError || passwordSaved) && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          className={`mt-3 text-xs ${passwordError ? 'text-clay' : 'text-moss'}`}
-                        >
-                          {passwordError || 'Password updated'}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
                     <motion.button
-                      onClick={() => void handleChangePassword()}
-                      disabled={saving}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium disabled:opacity-50 transition-colors hover:bg-ink/90"
+                      onClick={() => navigate('/changepassword')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium transition-colors hover:bg-ink/90"
                     >
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                      Change password
+                      Change
+                      <ChevronRight className="w-4 h-4" />
                     </motion.button>
-                  </>
-                )}
+                  </div>
                 </div>
                 <dl className="mt-auto pt-5 border-t border-line/50 space-y-4">
                  

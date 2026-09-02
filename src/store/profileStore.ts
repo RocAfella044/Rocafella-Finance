@@ -29,7 +29,7 @@ type ProfileState = {
   fetchProfile: () => Promise<void>;
   updateFullName: (fullName: string) => Promise<void>;
   resendVerification: () => Promise<void>;
-  changePassword: (password: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 };
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -136,10 +136,21 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  changePassword: async (password) => {
+  changePassword: async (currentPassword, newPassword) => {
     set({ saving: true, error: null });
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const email = user?.email;
+      if (!email) throw new Error('Unable to verify your current password.');
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+      if (signInError) {
+        throw new Error('Current password is incorrect.');
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
       await supabase
         .from('profiles')
