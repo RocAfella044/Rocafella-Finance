@@ -170,7 +170,11 @@ export default function DashboardLayout({ children, title }: { children: React.R
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/notifications')}
-              className="relative p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-sand/30 transition-colors"
+              className={`relative p-2 rounded-lg transition-all ${
+                location.pathname === '/notifications'
+                  ? 'text-ink bg-ink/10 ring-1 ring-ink/15 shadow-sm'
+                  : 'text-ink/40 hover:text-ink hover:bg-sand/30'
+              }`}
             >
               <Bell className="w-5 h-5" />
               {unreadCount() > 0 && (
