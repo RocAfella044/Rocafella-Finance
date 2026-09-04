@@ -155,7 +155,7 @@ export default function ProfilePage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 items-start">
               <FadeIn delay={0.1} className="rounded-xl border border-line bg-canvas p-5">
                 <h3 className="font-serif text-lg text-ink mb-4">Account Details</h3>
                 <dl className="space-y-4">
