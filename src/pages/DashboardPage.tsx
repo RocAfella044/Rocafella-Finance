@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { ShoppingCart, PiggyBank, Loader2, AlertCircle, RefreshCw, Send, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { ShoppingCart, PiggyBank, Landmark, Loader2, AlertCircle, RefreshCw, Send, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
 import { isValidPhone } from '../lib/validation';
 
-const statIcons = [ PiggyBank, ShoppingCart];
+const statIcons = [PiggyBank, ShoppingCart, Landmark];
 const COLORS = ['#c27a6f', '#d4a574', '#8aa68a', '#a0aec0', '#718096'];
 const quickAmounts = [100, 500, 1000, 5000];
 
