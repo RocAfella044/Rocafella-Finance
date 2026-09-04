@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { KeyRound, Loader2, AlertCircle, Check, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Loader2, AlertCircle, Check, ArrowLeft, Eye, EyeOff, Info, TriangleAlert } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
+import { StrengthBar } from '../Components/Auth/fields';
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
+
+type Errors = Partial<Record<'current' | 'next' | 'confirm', string>>;
+
+const MIN_PASSWORD = 6;
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
@@ -16,41 +21,55 @@ export default function ChangePasswordPage() {
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
   const [shown, setShown] = useState<Record<string, boolean>>({});
-  const [formError, setFormError] = useState('');
+  const [capsLock, setCapsLock] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
   const [saved, setSaved] = useState(false);
 
   const toggleShow = (id: string) => setShown((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError('');
-    setSaved(false);
+  const validate = (): Errors => {
+    const newErrors: Errors = {};
     if (!current) {
-      setFormError('Current password is required');
-      return;
+      newErrors.current = 'Enter your current password';
     }
     if (!next) {
-      setFormError('New password is required');
-      return;
+      newErrors.next = 'Enter a new password';
+    } else if (next.length < MIN_PASSWORD) {
+      newErrors.next = `Password must be at least ${MIN_PASSWORD} characters`;
     }
-    if (next.length < 6) {
-      setFormError('New password must be at least 6 characters');
-      return;
+    if (!confirm) {
+      newErrors.confirm = 'Re-enter your new password';
+    } else if (next !== confirm) {
+      newErrors.confirm = 'Passwords do not match';
     }
-    if (next !== confirm) {
-      setFormError('New passwords do not match');
-      return;
-    }
+    return newErrors;
+  };
+
+  const valid = current.length > 0 && next.length >= MIN_PASSWORD && next === confirm;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors = validate();
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+    setSaved(false);
     try {
+      if (!valid) return;
       await useProfileStore.getState().changePassword(current, next);
       setCurrent('');
       setNext('');
       setConfirm('');
+      setErrors({});
       setSaved(true);
       setTimeout(() => navigate('/profile', { replace: true }), 1500);
     } catch {
       /* error shown via store */
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.getModifierState('CapsLock')) setCapsLock(true);
+    else setCapsLock(false);
   };
 
   return (
@@ -95,51 +114,86 @@ export default function ChangePasswordPage() {
               </div>
             )}
 
+            {saved && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-lg bg-moss/10 border border-moss/30 px-3.5 py-3 text-sm text-moss mb-5"
+              >
+                <Check className="w-4 h-4 shrink-0" />
+                Password updated. Redirecting to your profile&hellip;
+              </motion.div>
+            )}
+
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <Field
                 id="current-password"
                 label="Current password"
                 value={current}
                 onChange={setCurrent}
+                error={errors.current}
                 show={Boolean(shown['current-password'])}
                 onToggleShow={() => toggleShow('current-password')}
+                autoComplete="current-password"
+                onKeyDown={handleKeyDown}
               />
-              <Field
-                id="new-password"
-                label="New password"
-                value={next}
-                onChange={setNext}
-                show={Boolean(shown['new-password'])}
-                onToggleShow={() => toggleShow('new-password')}
-              />
+
+              <div>
+                <Field
+                  id="new-password"
+                  label="New password"
+                  value={next}
+                  onChange={setNext}
+                  error={errors.next}
+                  show={Boolean(shown['new-password'])}
+                  onToggleShow={() => toggleShow('new-password')}
+                  autoComplete="new-password"
+                  onKeyDown={handleKeyDown}
+                />
+                <AnimatePresence>
+                  {!errors.next && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex items-center gap-1.5 text-[11px] text-ink/45 mt-2"
+                    >
+                      <Info className="w-3 h-3 shrink-0" />
+                      At least {MIN_PASSWORD} characters
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+                {capsLock && !errors.next && next.length > 0 && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-1.5 text-[11px] text-sand mt-1.5"
+                  >
+                    <TriangleAlert className="w-3 h-3 shrink-0" />
+                    Caps Lock is on
+                  </motion.p>
+                )}
+                <StrengthBar password={next} error={errors.next} />
+              </div>
+
               <Field
                 id="confirm-new-password"
                 label="Retype new password"
                 value={confirm}
                 onChange={setConfirm}
+                error={errors.confirm}
                 show={Boolean(shown['confirm-new-password'])}
                 onToggleShow={() => toggleShow('confirm-new-password')}
+                autoComplete="new-password"
+                onKeyDown={handleKeyDown}
               />
-
-              <AnimatePresence>
-                {formError && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="text-xs text-clay"
-                  >
-                    {formError}
-                  </motion.p>
-                )}
-              </AnimatePresence>
 
               <motion.button
                 type="submit"
-                disabled={saving || saved}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={saving || saved || !valid}
+                whileHover={valid && !saving && !saved ? { scale: 1.01 } : undefined}
+                whileTap={valid && !saving && !saved ? { scale: 0.99 } : undefined}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-ink text-canvas text-sm font-medium tracking-wide transition-colors hover:bg-ink/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
@@ -151,6 +205,8 @@ export default function ChangePasswordPage() {
                     <Check className="w-4 h-4" />
                     Password updated
                   </>
+                ) : !valid ? (
+                  'Fill in all fields to continue'
                 ) : (
                   'Change password'
                 )}
@@ -171,6 +227,8 @@ function Field({
   error,
   onToggleShow,
   show,
+  autoComplete,
+  onKeyDown,
 }: {
   id: string;
   label: string;
@@ -179,6 +237,8 @@ function Field({
   error?: string;
   onToggleShow: () => void;
   show: boolean;
+  autoComplete: string;
+  onKeyDown: (e: React.KeyboardEvent) => void;
 }) {
   return (
     <div>
@@ -186,12 +246,16 @@ function Field({
         {label}
       </label>
       <div className="relative">
-        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/35" />
+        <KeyRound className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${error ? 'text-clay' : 'text-ink/35'}`} />
         <input
           id={id}
           type={show ? 'text' : 'password'}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            onChange(e.target.value);
+          }}
+          onKeyDown={onKeyDown}
+          autoComplete={autoComplete}
           className={`w-full pl-9 pr-11 py-3 rounded-lg border bg-sand/30 text-sm text-ink outline-none transition-colors focus:bg-canvas ${
             error ? 'border-clay' : 'border-line focus:border-ink'
           }`}
@@ -206,7 +270,18 @@ function Field({
           {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       </div>
-      {error && <p className="mt-1.5 text-xs text-clay">{error}</p>}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="mt-1.5 text-xs text-clay"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

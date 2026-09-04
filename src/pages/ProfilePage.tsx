@@ -6,9 +6,7 @@ import {
   Calendar,
   Check,
   Copy,
-  CreditCard,
-  KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock, ChevronRight,
-} from 'lucide-react';
+  CreditCard, KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock, ChevronRight, AtSign, Activity } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
 import { FadeIn } from '../lib/FadeIn';
@@ -194,55 +192,74 @@ export default function ProfilePage() {
                   <DetailRow label="Mobile number">
                     <span className="text-ink/70">{profile.phone || '—'}</span>
                   </DetailRow>
-                  <DetailRow label="Role">
-                    <span className="capitalize text-ink/70">{profile.role}</span>
-                  </DetailRow>
                 </dl>
               </FadeIn>
 
-              <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5 flex flex-col h-full">
-                <div className="flex-1">
-                  <h3 className="font-serif text-lg text-ink mb-1">Security</h3>
-                  <p className="text-xs text-ink/50 mb-5">
-                    Last sign in: {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
-                  </p>
-                  <div className="rounded-lg border border-line bg-sand/20 p-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
-                        <KeyRound className="w-4 h-4 text-clay" />
-                        Change password
-                      </p>
-                      <p className="mt-1 text-xs text-ink/50">
-                        Update your account password for security.
-                      </p>
-                    </div>
-                    <motion.button
-                      onClick={() => navigate('/changepassword')}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium transition-colors hover:bg-ink/90"
-                    >
-                      Change
-                      <ChevronRight className="w-4 h-4" />
-                    </motion.button>
-                  </div>
-                </div>
-                <dl className="mt-auto pt-5 border-t border-line/50 space-y-4">
-                 
-                  <DetailRow label="Member since">
-                    <span className="flex items-center gap-1.5 text-ink/70">
-                      <Calendar className="w-3.5 h-3.5 text-ink/30" />
-                      {memberSince}
+              <div className="flex flex-col gap-6 h-full">
+              <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5 flex flex-col">
+                <h3 className="font-serif text-lg text-ink mb-1">Security</h3>
+                <p className="text-xs text-ink/50 mb-4">
+                  Keep your account safe and secure.
+                </p>
+                <dl className="flex-1">
+                  <IconRow label="Last sign in" icon={<Clock className="w-3.5 h-3.5 text-ink/30" />}>
+                    {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
+                  </IconRow>
+                  <IconRow label="Password" icon={<KeyRound className="w-3.5 h-3.5 text-ink/30" />}>
+                    {profile.passwordChangedAt
+                      ? `Updated ${new Date(profile.passwordChangedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}`
+                      : 'Not set yet'}
+                  </IconRow>
+                  <IconRow label="Email" icon={<AtSign className="w-3.5 h-3.5 text-ink/30" />}>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                      {profile.emailVerified ? (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-moss" />
+                          <span className="text-moss">Verified</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-sand" />
+                          <span className="text-sand">Unverified</span>
+                        </>
+                      )}
                     </span>
-                  </DetailRow>
-                  <DetailRow label="Status">
+                  </IconRow>
+                </dl>
+                <motion.button
+                  onClick={() => navigate('/changepassword')}
+                  whileTap={{ scale: 0.98 }}
+                  className="mt-4 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium transition-colors hover:bg-ink/90"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Change password
+                  <ChevronRight className="w-4 h-4" />
+                </motion.button>
+              </FadeIn>
+
+              <FadeIn delay={0.2} className="rounded-xl border border-line bg-canvas p-5 flex flex-col">
+                <h3 className="font-serif text-lg text-ink mb-1">Membership</h3>
+                <p className="text-xs text-ink/50 mb-5">Account membership details</p>
+                <dl className="flex-1">
+                  <IconRow label="Member since" icon={<Calendar className="w-3.5 h-3.5 text-ink/30" />}>
+                    {memberSince}
+                  </IconRow>
+                  <IconRow label="Role" icon={<Shield className="w-3.5 h-3.5 text-ink/30" />}>
+                    <span className="capitalize text-ink/70">{profile.role}</span>
+                  </IconRow>
+                  <IconRow label="Status" icon={<Activity className="w-3.5 h-3.5 text-ink/30" />}>
                     <span className="inline-flex items-center gap-1.5 text-xs text-moss">
                       <span className="w-1.5 h-1.5 rounded-full bg-moss animate-pulse" />
                       Active
                     </span>
-                  </DetailRow>
+                  </IconRow>
                 </dl>
               </FadeIn>
+              </div>
             </div>
           </>
         ) : null}
@@ -256,6 +273,23 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
     <div className="flex items-center justify-between gap-4 py-2.5 border-b border-line/50 last:border-0">
       <dt className="text-xs font-mono uppercase tracking-wider text-ink/40">{label}</dt>
       <dd className="flex items-center text-sm">{children}</dd>
+    </div>
+  );
+}
+
+function IconRow({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-line/50 last:border-0">
+      <dt className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-ink/40">{icon}{label}</dt>
+      <dd className="text-right text-sm text-ink/70">{children}</dd>
     </div>
   );
 }
