@@ -57,6 +57,17 @@ alter table public.profiles add column if not exists password_changed_at timesta
     created_at timestamptz not null default now()
   );
 
+  create table if not exists public.notifications (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    type text not null check (type in ('transaction', 'order', 'security', 'system', 'deposit')),
+    title text not null,
+    body text not null,
+    meta jsonb,
+    read boolean not null default false,
+    created_at timestamptz not null default now()
+  );
+
   -- ---------- Row Level Security ----------
 
   alter table public.profiles enable row level security;
@@ -64,6 +75,7 @@ alter table public.profiles add column if not exists password_changed_at timesta
   alter table public.orders enable row level security;
   alter table public.clients enable row level security;
   alter table public.deposits enable row level security;
+  alter table public.notifications enable row level security;
 
   drop policy if exists "Users can view own profile" on public.profiles;
   create policy "Users can view own profile"
@@ -124,6 +136,19 @@ alter table public.profiles add column if not exists password_changed_at timesta
   create policy "Users can delete own deposits"
     on public.deposits for delete using (auth.uid() = user_id);
 
+  drop policy if exists "Users can view own notifications" on public.notifications;
+  create policy "Users can view own notifications"
+    on public.notifications for select using (auth.uid() = user_id);
+  drop policy if exists "Users can insert own notifications" on public.notifications;
+  create policy "Users can insert own notifications"
+    on public.notifications for insert with check (auth.uid() = user_id);
+  drop policy if exists "Users can update own notifications" on public.notifications;
+  create policy "Users can update own notifications"
+    on public.notifications for update using (auth.uid() = user_id);
+  drop policy if exists "Users can delete own notifications" on public.notifications;
+  create policy "Users can delete own notifications"
+    on public.notifications for delete using (auth.uid() = user_id);
+
   -- ---------- Indexes ----------
 
   create index if not exists transactions_user_date_idx
@@ -134,6 +159,8 @@ alter table public.profiles add column if not exists password_changed_at timesta
     on public.clients (user_id);
   create index if not exists deposits_user_idx
     on public.deposits (user_id);
+  create index if not exists notifications_user_created_idx
+    on public.notifications (user_id, created_at desc);
 
   -- ---------- Realtime ----------
 
@@ -150,6 +177,9 @@ alter table public.profiles add column if not exists password_changed_at timesta
     end if;
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'deposits') then
       alter publication supabase_realtime add table public.deposits;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications') then
+      alter publication supabase_realtime add table public.notifications;
     end if;
   end $$;
 

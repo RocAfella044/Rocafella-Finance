@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, LogOut, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, Bell, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
+import { useNotificationStore } from '../../store/notificationStore';
 import { useReveal } from '../../lib/useReveal';
 import { EASE } from '../../lib/motion';
 
@@ -17,6 +18,12 @@ export default function DashboardLayout({ children, title }: { children: React.R
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const openSidebar = useUiStore((s) => s.openSidebar);
   const closeSidebar = useUiStore((s) => s.closeSidebar);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+
+  useEffect(() => {
+    void fetchNotifications();
+  }, [fetchNotifications]);
 
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
@@ -162,10 +169,15 @@ export default function DashboardLayout({ children, title }: { children: React.R
               {...bellReveal}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/notifications')}
               className="relative p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-sand/30 transition-colors"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-clay" />
+              {unreadCount() > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-clay text-canvas text-[10px] font-bold px-1">
+                  {unreadCount() > 99 ? '99+' : unreadCount()}
+                </span>
+              )}
             </motion.button>
           </div>
         </header>
