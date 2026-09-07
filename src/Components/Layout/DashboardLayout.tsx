@@ -193,7 +193,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             >
               <Bell className="w-5 h-5" />
               {unreadCount() > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-clay text-canvas text-[10px] font-bold px-1">
+                <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 flex items-center justify-center rounded-full bg-clay text-canvas text-[10px] font-bold px-1">
                   {unreadCount() > 99 ? '99+' : unreadCount()}
                 </span>
               )}
