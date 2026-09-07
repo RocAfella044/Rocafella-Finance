@@ -6,6 +6,8 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import NotificationPage from './pages/NotificationPage';
+import SettingsPage from './pages/SettingsPage';
+import HelpCenterPage from './pages/HelpCenterPage';
 import { useAuthStore } from './store/authStore';
 import './index.css';
 
@@ -34,6 +36,8 @@ function App() {
         <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
         <Route path="/changepassword" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
         <Route path="/notifications" element={<RequireAuth><NotificationPage /></RequireAuth>} />
+        <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+        <Route path="/help" element={<RequireAuth><HelpCenterPage /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

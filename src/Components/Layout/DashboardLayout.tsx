@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Bell, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Bell, LogOut, Menu, X, Settings, LifeBuoy } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useReveal } from '../../lib/useReveal';
 import { EASE } from '../../lib/motion';
 
-const navItems = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }];
+const navItems = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
+  { label: 'Help Center', icon: LifeBuoy, path: '/help' },
+];
 
 export default function DashboardLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const navigate = useNavigate();
