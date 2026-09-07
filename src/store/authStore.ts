@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { supabase, isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from '../lib/supabase';
 import { isValidEmail, isValidPhone } from '../lib/validation';
 
-export type User = { id: string; email: string; name?: string };
+type User = { id: string; email: string; name?: string };
 
 type AuthUser = { id: string; email?: string; user_metadata?: Record<string, unknown> };
 

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { FadeIn } from '../../lib/FadeIn';
 import { EASE } from '../../lib/motion';
 
-export function Brand({ className = '' }: { className?: string }) {
+function Brand({ className = '' }: { className?: string }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <span className="w-2 h-2 rounded-full bg-clay" />

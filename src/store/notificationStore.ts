@@ -4,7 +4,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type NotificationType = 'transaction' | 'order' | 'security' | 'system' | 'deposit';
 
-export type Notification = {
+type Notification = {
   id: string;
   type: NotificationType;
   title: string;

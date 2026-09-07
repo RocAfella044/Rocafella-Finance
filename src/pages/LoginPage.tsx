@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Mail, Lock } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { AuthShell } from '../Components/Auth/AuthShell';
@@ -18,7 +17,6 @@ export default function LoginPage() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState('');
@@ -101,8 +99,7 @@ export default function LoginPage() {
           />
         </FadeIn>
 
-        <FadeIn delay={0.1} className="flex items-center justify-between pt-1">
-          <Checkbox checked={rememberMe} onChange={setRememberMe} label="Remember me" />
+        <FadeIn delay={0.1} className="flex items-center justify-end pt-1">
           <a href="#" className="text-sm text-ink/50 hover:text-clay transition-colors">
             Forgot password?
           </a>
@@ -123,46 +120,5 @@ export default function LoginPage() {
         </Link>
       </FadeIn>
     </AuthShell>
-  );
-}
-
-function Checkbox({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-      <span
-        onClick={() => onChange(!checked)}
-        className={`relative w-4 h-4 rounded shrink-0 border flex items-center justify-center transition-colors
-          ${checked ? 'bg-ink border-ink' : 'border-line bg-transparent group-hover:border-ink/40'}`}
-      >
-        <svg viewBox="0 0 16 16" className="w-3 h-3 text-canvas">
-          <motion.path
-            d="M3.5 8.2 6.3 11 12.5 4.8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={false}
-            animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        </svg>
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
-      />
-      <span className="text-sm text-ink/60">{label}</span>
-    </label>
   );
 }

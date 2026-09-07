@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export type Profile = {
+type Profile = {
   id: string;
   fullName: string;
   email: string;
@@ -14,7 +14,7 @@ export type Profile = {
   lastSignInAt: string | null;
 };
 
-export type ProfileCounts = {
+type ProfileCounts = {
   transactions: number;
   orders: number;
   clients: number;

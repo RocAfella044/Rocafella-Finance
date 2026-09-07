@@ -2,15 +2,15 @@ import { create } from 'zustand';
 import { supabase, isSupabaseConfigured, SUPABASE_CONFIG_ERROR } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-export type Stat = {
+type Stat = {
   label: string;
   value: string;
   change: string;
 };
 
-export type IncomeExpensePoint = { month: string; income: number; expenses: number };
-export type CategoryPoint = { name: string; value: number };
-export type Transaction = {
+type IncomeExpensePoint = { month: string; income: number; expenses: number };
+type CategoryPoint = { name: string; value: number };
+type Transaction = {
   id: string;
   description: string;
   category: string;
@@ -18,7 +18,7 @@ export type Transaction = {
   date: string;
   type: 'income' | 'expense';
 };
-export type Recipient = { name: string; email: string | null };
+type Recipient = { name: string; email: string | null };
 
 type DbTransaction = {
   id: string;
