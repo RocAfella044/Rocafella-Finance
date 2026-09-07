@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Bell, LogOut, Menu, X, Settings, LifeBuoy } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useReveal } from '../../lib/useReveal';
 import { EASE } from '../../lib/motion';
 
-const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+const navItems = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }];
+
+const settingsItems = [
   { label: 'Settings', icon: Settings, path: '/settings' },
   { label: 'Help Center', icon: LifeBuoy, path: '/help' },
 ];
@@ -110,28 +112,37 @@ export default function DashboardLayout({ children, title }: { children: React.R
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <motion.button
-                key={item.label}
-                {...navReveal}
-                onClick={() => {
-                  navigate(item.path);
-                  closeSidebar();
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm cursor-pointer transition-all
-                  ${
-                    active
-                      ? 'bg-canvas/10 text-canvas font-medium shadow-[0_0_28px_-6px_rgba(250,247,242,0.5)] ring-1 ring-canvas/25'
-                      : 'text-canvas/50 hover:text-canvas hover:bg-canvas/5 hover:shadow-[0_0_28px_-8px_rgba(250,247,242,0.4)]'
-                  }`}
-              >
-                <item.icon className="w-4.5 h-4.5 shrink-0" />
-                {item.label}
-              </motion.button>
-            );
-          })}
+          {navItems.map((item) => (
+            <NavButton
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+              active={location.pathname === item.path}
+              reveal={navReveal}
+              onClick={() => {
+                navigate(item.path);
+                closeSidebar();
+              }}
+            />
+          ))}
+
+          <p className="pt-5 px-3.5 pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/30">
+            Preferences
+          </p>
+
+          {settingsItems.map((item) => (
+            <NavButton
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+              active={location.pathname === item.path}
+              reveal={navReveal}
+              onClick={() => {
+                navigate(item.path);
+                closeSidebar();
+              }}
+            />
+          ))}
         </nav>
 
         <div className="px-3 pb-6">
@@ -213,4 +224,33 @@ export default function DashboardLayout({ children, title }: { children: React.R
     </div>
   );
 }
-  
+
+function NavButton({
+  label,
+  icon: Icon,
+  active,
+  reveal,
+  onClick,
+}: {
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  reveal: ReturnType<typeof useReveal>;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      {...reveal}
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm cursor-pointer transition-all
+        ${
+          active
+            ? 'bg-canvas/10 text-canvas font-medium shadow-[0_0_28px_-6px_rgba(250,247,242,0.5)] ring-1 ring-canvas/25'
+            : 'text-canvas/50 hover:text-canvas hover:bg-canvas/5 hover:shadow-[0_0_28px_-8px_rgba(250,247,242,0.4)]'
+        }`}
+    >
+      <Icon className="w-4.5 h-4.5 shrink-0" />
+      {label}
+    </motion.button>
+  );
+}
