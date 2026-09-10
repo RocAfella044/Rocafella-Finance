@@ -31,7 +31,9 @@ type DbTransaction = {
 
 type DbClient = { name: string; email: string | null };
 
-type DbDeposit = { amount: number; rate: number };
+type DbDeposit = { id: string; label: string; amount: number; rate: number; maturity_date: string | null; created_at: string };
+
+type Deposit = { id: string; label: string; amount: number; rate: number; maturity_date: string | null; created_at: string };
 
 type DashboardState = {
   stats: Stat[];
@@ -39,6 +41,7 @@ type DashboardState = {
   categoryData: CategoryPoint[];
   recentTransactions: Transaction[];
   recipients: Recipient[];
+  deposits: Deposit[];
   loading: boolean;
   error: string | null;
   lastUpdated: string | null;
@@ -123,7 +126,16 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbD
 
   const recipients: Recipient[] = clients.map((c) => ({ name: c.name, email: c.email }));
 
-  return { stats, incomeExpenseData, categoryData, recentTransactions, recipients };
+  const depositsFull: Deposit[] = deposits.map((d) => ({
+    id: d.id,
+    label: d.label,
+    amount: d.amount,
+    rate: d.rate,
+    maturity_date: d.maturity_date,
+    created_at: d.created_at,
+  }));
+
+  return { stats, incomeExpenseData, categoryData, recentTransactions, recipients, deposits: depositsFull };
 }
 
 let realtimeChannel: RealtimeChannel | null = null;
@@ -156,6 +168,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   categoryData: [],
   recentTransactions: [],
   recipients: [],
+  deposits: [],
   loading: false,
   error: null,
   lastUpdated: null,
@@ -180,7 +193,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           .select('id, type, category, description, amount, date')
           .order('date', { ascending: true }),
         supabase.from('clients').select('name, email').order('name', { ascending: true }),
-        supabase.from('deposits').select('amount, rate'),
+        supabase.from('deposits').select('id, label, amount, rate, maturity_date, created_at'),
       ]);
 
       const firstError = [txRes, clientRes, depositRes].find((r) => r.error)?.error;

@@ -8,6 +8,7 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import NotificationPage from './pages/NotificationPage';
 import SettingsPage from './pages/SettingsPage';
 import HelpCenterPage from './pages/HelpCenterPage';
+import MyWalletPage from './pages/MyWalletPage';
 import { useAuthStore } from './store/authStore';
 import './index.css';
 
@@ -33,6 +34,7 @@ function App() {
         <Route path="/register" element={<RedirectIfAuthenticated><RegisterPage /></RedirectIfAuthenticated>} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+        <Route path="/mywallet" element={<RequireAuth><MyWalletPage /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
         <Route path="/changepassword" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
         <Route path="/notifications" element={<RequireAuth><NotificationPage /></RequireAuth>} />
