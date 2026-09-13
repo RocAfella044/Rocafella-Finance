@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 
-export type Language = 'en' | 'ne' | 'hi';
-
 export type NotificationPrefs = {
   transactions: boolean;
   security: boolean;
@@ -9,21 +7,17 @@ export type NotificationPrefs = {
 };
 
 type PreferencesState = {
-  language: Language;
   notifications: NotificationPrefs;
-  setLanguage: (language: Language) => void;
   toggleNotification: (key: keyof NotificationPrefs) => void;
 };
 
 const STORAGE_KEY = 'rocfin.preferences';
 
 type Persisted = {
-  language: Language;
   notifications: NotificationPrefs;
 };
 
 const defaults: Persisted = {
-  language: 'en',
   notifications: {
     transactions: true,
     security: true,
@@ -38,7 +32,6 @@ function load(): Persisted {
     if (!raw) return defaults;
     const parsed = JSON.parse(raw) as Partial<Persisted>;
     return {
-      language: parsed.language ?? defaults.language,
       notifications: { ...defaults.notifications, ...(parsed.notifications ?? {}) },
     };
   } catch {
@@ -54,13 +47,7 @@ function persist(state: Persisted) {
 const initial = load();
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
-  language: initial.language,
   notifications: initial.notifications,
-
-  setLanguage: (language) => {
-    set({ language });
-    persist(get());
-  },
 
   toggleNotification: (key) => {
     set((s) => ({
