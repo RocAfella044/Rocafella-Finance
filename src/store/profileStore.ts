@@ -28,6 +28,7 @@ type ProfileState = {
   error: string | null;
   fetchProfile: () => Promise<void>;
   updateFullName: (fullName: string) => Promise<void>;
+  updatePhone: (phone: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 };
@@ -115,6 +116,20 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ profile: { ...get().profile!, fullName }, saving: false });
     } catch (error) {
       set({ saving: false, error: error instanceof Error ? error.message : 'Failed to update profile.' });
+      throw error;
+    }
+  },
+
+  updatePhone: async (phone) => {
+    const profile = get().profile;
+    if (!profile) return;
+    set({ saving: true, error: null });
+    try {
+      const { error } = await supabase.from('profiles').update({ phone }).eq('id', profile.id);
+      if (error) throw error;
+      set({ profile: { ...get().profile!, phone }, saving: false });
+    } catch (error) {
+      set({ saving: false, error: error instanceof Error ? error.message : 'Failed to update phone number.' });
       throw error;
     }
   },

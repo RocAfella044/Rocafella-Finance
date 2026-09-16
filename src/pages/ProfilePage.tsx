@@ -16,6 +16,8 @@ const roleColor: Record<string, string> = {
   client: 'text-moss bg-moss/10',
 };
 
+const AVATAR_KEY = 'rocfin.avatar';
+
 export default function ProfilePage() {
   const profile = useProfileStore((s) => s.profile);
   const counts = useProfileStore((s) => s.counts);
@@ -24,6 +26,15 @@ export default function ProfilePage() {
   const fetchProfile = useProfileStore((s) => s.fetchProfile);
 
   const [copied, setCopied] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setAvatar(window.localStorage.getItem(AVATAR_KEY));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     void fetchProfile();
@@ -59,9 +70,13 @@ export default function ProfilePage() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, ease: EASE }}
-              className="w-16 h-16 rounded-2xl bg-clay/20 border border-clay/30 flex items-center justify-center font-serif text-2xl text-clay shrink-0"
+              className="w-16 h-16 rounded-2xl bg-clay/20 border border-clay/30 flex items-center justify-center font-serif text-2xl text-clay shrink-0 overflow-hidden"
             >
-              {initials}
+              {avatar ? (
+                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </motion.span>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
