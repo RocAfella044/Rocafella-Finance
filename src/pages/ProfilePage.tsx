@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BadgeCheck,
   Calendar,
   Check,
   Copy,
-  CreditCard, KeyRound, Loader2, Shield, AlertCircle, RefreshCw, Clock, ChevronRight, AtSign, Activity } from 'lucide-react';
+  CreditCard, Loader2, Shield, AlertCircle, RefreshCw, Clock, Activity } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useProfileStore } from '../store/profileStore';
 import { FadeIn } from '../lib/FadeIn';
@@ -18,7 +17,6 @@ const roleColor: Record<string, string> = {
 };
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
   const profile = useProfileStore((s) => s.profile);
   const counts = useProfileStore((s) => s.counts);
   const loading = useProfileStore((s) => s.loading);
@@ -195,53 +193,7 @@ export default function ProfilePage() {
                 </dl>
               </FadeIn>
 
-              <div className="flex flex-col gap-6 h-full">
               <FadeIn delay={0.15} className="rounded-xl border border-line bg-canvas p-5 flex flex-col">
-                <h3 className="font-serif text-lg text-ink mb-1">Security</h3>
-                <p className="text-xs text-ink/50 mb-4">
-                  Keep your account safe and secure.
-                </p>
-                <dl className="flex-1">
-                  <IconRow label="Last sign in" icon={<Clock className="w-3.5 h-3.5 text-ink/30" />}>
-                    {profile.lastSignInAt ? new Date(profile.lastSignInAt).toLocaleString() : '—'}
-                  </IconRow>
-                  <IconRow label="Password" icon={<KeyRound className="w-3.5 h-3.5 text-ink/30" />}>
-                    {profile.passwordChangedAt
-                      ? `Updated ${new Date(profile.passwordChangedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}`
-                      : 'Not set yet'}
-                  </IconRow>
-                  <IconRow label="Email" icon={<AtSign className="w-3.5 h-3.5 text-ink/30" />}>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium">
-                      {profile.emailVerified ? (
-                        <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-moss" />
-                          <span className="text-moss">Verified</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-sand" />
-                          <span className="text-sand">Unverified</span>
-                        </>
-                      )}
-                    </span>
-                  </IconRow>
-                </dl>
-                <motion.button
-                  onClick={() => navigate('/changepassword')}
-                  whileTap={{ scale: 0.98 }}
-                  className="mt-4 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-ink text-canvas text-sm font-medium transition-colors hover:bg-ink/90"
-                >
-                  <KeyRound className="w-4 h-4" />
-                  Change password
-                  <ChevronRight className="w-4 h-4" />
-                </motion.button>
-              </FadeIn>
-
-              <FadeIn delay={0.2} className="rounded-xl border border-line bg-canvas p-5 flex flex-col">
                 <h3 className="font-serif text-lg text-ink mb-1">Membership</h3>
                 <p className="text-xs text-ink/50 mb-5">Account membership details</p>
                 <dl className="flex-1">
@@ -259,7 +211,6 @@ export default function ProfilePage() {
                   </IconRow>
                 </dl>
               </FadeIn>
-              </div>
             </div>
           </>
         ) : null}

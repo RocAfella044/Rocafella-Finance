@@ -61,7 +61,7 @@ export default function ChangePasswordPage() {
       setConfirm('');
       setErrors({});
       setSaved(true);
-      setTimeout(() => navigate('/profile', { replace: true }), 1500);
+      setTimeout(() => navigate('/settings', { replace: true }), 1500);
     } catch {
       /* error shown via store */
     }
@@ -77,7 +77,7 @@ export default function ChangePasswordPage() {
       <div className="max-w-xl mx-auto">
         <FadeIn>
           <motion.button
-            onClick={() => navigate('/profile')}
+            onClick={() => navigate('/settings')}
             whileHover={{ x: -2 }}
             className="mb-6 flex items-center gap-1.5 text-sm text-ink/50 hover:text-ink transition-colors"
           >
