@@ -18,21 +18,17 @@ import {
   Sparkles,
   Smartphone,
   User,
-  Palette,
   Camera,
   Mail,
   Phone,
   CreditCard,
   Calendar,
-  Globe,
-  MapPin,
 } from 'lucide-react';
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import {
   usePreferencesStore,
   type NotificationPrefs,
   type DeliveryChannels,
-  type LocalePrefs,
 } from '../store/preferencesStore';
 import { useProfileStore } from '../store/profileStore';
 import { FadeIn } from '../lib/FadeIn';
@@ -40,13 +36,12 @@ import { EASE } from '../lib/motion';
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'security' | 'notifications' | 'preferences';
+type Tab = 'profile' | 'security' | 'notifications';
 
 const tabs: { id: Tab; label: string; desc: string; icon: React.ReactNode }[] = [
   { id: 'profile', label: 'Profile', desc: 'Name, email, and avatar', icon: <User className="w-4 h-4" /> },
   { id: 'security', label: 'Security', desc: 'Password and sign-in activity', icon: <Shield className="w-4 h-4" /> },
   { id: 'notifications', label: 'Notifications', desc: 'Alerts and delivery methods', icon: <Bell className="w-4 h-4" /> },
-  { id: 'preferences', label: 'Preferences', desc: 'Language and region', icon: <Palette className="w-4 h-4" /> },
 ];
 
 // ── Avatar helpers ────────────────────────────────────────────────────────────
@@ -114,23 +109,6 @@ const notificationGroups: NotifyGroup[] = [
 
 type ChannelItem = { key: keyof DeliveryChannels; label: string; hint: string };
 
-const languages = [
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'fr', label: 'French' },
-  { value: 'ne', label: 'Nepali' },
-  { value: 'hi', label: 'Hindi' },
-  { value: 'de', label: 'German' },
-];
-
-const regions = [
-  { value: 'us', label: 'United States' },
-  { value: 'uk', label: 'United Kingdom' },
-  { value: 'eu', label: 'European Union' },
-  { value: 'np', label: 'Nepal' },
-  { value: 'in', label: 'India' },
-];
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -160,12 +138,6 @@ export default function SettingsPage() {
   const [draftNotifs, setDraftNotifs] = useState<NotificationPrefs>(storedNotifs);
   const [draftChannels, setDraftChannels] = useState<DeliveryChannels>(storedChannels);
   const [notifSaved, setNotifSaved] = useState(false);
-
-  // Preferences
-  const storedLocale = usePreferencesStore((s) => s.locale);
-  const submitLocale = usePreferencesStore((s) => s.submitLocale);
-  const [draftLocale, setDraftLocale] = useState<LocalePrefs>(storedLocale);
-  const [prefsSaved, setPrefsSaved] = useState(false);
 
   // ── Effects ───────────────────────────────────────────────────────────────
 
@@ -239,20 +211,6 @@ export default function SettingsPage() {
     setDraftChannels(storedChannels);
   };
 
-  // ── Preferences handlers ──────────────────────────────────────────────────
-
-  const prefsDirty = JSON.stringify(draftLocale) !== JSON.stringify(storedLocale);
-
-  const handlePrefsSave = () => {
-    submitLocale(draftLocale);
-    setPrefsSaved(true);
-    setTimeout(() => setPrefsSaved(false), 1800);
-  };
-
-  const handlePrefsReset = () => {
-    setDraftLocale(storedLocale);
-  };
-
   // ── Shared data ───────────────────────────────────────────────────────────
 
   const channelItems: ChannelItem[] = [
@@ -280,7 +238,7 @@ export default function SettingsPage() {
             <p className="font-mono text-xs tracking-[0.3em] uppercase text-canvas/50 mb-2">Preferences</p>
             <h2 className="font-serif text-2xl sm:text-3xl text-canvas">Settings</h2>
             <p className="mt-2 text-sm text-canvas/60 max-w-md">
-              Manage your profile, security, notifications, and appearance.
+              Manage your profile, security, and notifications.
             </p>
           </div>
           <svg className="absolute -right-12 -top-12 w-64 h-64 opacity-10" viewBox="0 0 200 200" aria-hidden="true">
@@ -646,89 +604,6 @@ export default function SettingsPage() {
                     >
                       {notifSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                       {notifSaved ? 'Saved' : 'Save changes'}
-                    </motion.button>
-                  </div>
-                </div>
-              </FadeIn>
-            )}
-
-            {/* ═══════════════ PREFERENCES ═══════════════ */}
-            {tab === 'preferences' && (
-              <FadeIn delay={0.1} className="rounded-2xl border border-line bg-canvas p-5 sm:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="w-9 h-9 rounded-lg bg-moss/15 flex items-center justify-center">
-                    <Palette className="w-4.5 h-4.5 text-moss" />
-                  </span>
-                  <div>
-                    <h3 className="font-serif text-lg text-ink">Preferences</h3>
-                    <p className="text-xs text-ink/50">Customize your language and region</p>
-                  </div>
-                </div>
-
-                <div className="space-y-7">
-                  {/* Language */}
-                  <section>
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-ink/40 mb-3">Language</h4>
-                    <div className="flex items-center gap-3 rounded-xl border border-line bg-ink/[0.02] p-4">
-                      <Globe className="w-4 h-4 text-ink/40 shrink-0" />
-                      <select
-                        value={draftLocale.language}
-                        onChange={(e) => setDraftLocale((p) => ({ ...p, language: e.target.value }))}
-                        className="flex-1 bg-transparent text-sm text-ink focus:outline-none appearance-none cursor-pointer"
-                      >
-                        {languages.map((l) => (
-                          <option key={l.value} value={l.value}>{l.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </section>
-
-                  {/* Region */}
-                  <section>
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-ink/40 mb-3">Region</h4>
-                    <div className="flex items-center gap-3 rounded-xl border border-line bg-ink/[0.02] p-4">
-                      <MapPin className="w-4 h-4 text-ink/40 shrink-0" />
-                      <select
-                        value={draftLocale.region}
-                        onChange={(e) => setDraftLocale((p) => ({ ...p, region: e.target.value }))}
-                        className="flex-1 bg-transparent text-sm text-ink focus:outline-none appearance-none cursor-pointer"
-                      >
-                        {regions.map((r) => (
-                          <option key={r.value} value={r.value}>{r.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </section>
-                </div>
-
-                <div className="mt-8 flex items-center justify-between">
-                  <p className="text-xs text-ink/40">
-                    {prefsSaved ? (
-                      <span className="text-moss">Preferences saved.</span>
-                    ) : prefsDirty ? (
-                      'You have unsaved changes.'
-                    ) : (
-                      'No changes to save.'
-                    )}
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handlePrefsReset}
-                      disabled={!prefsDirty}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-line text-ink/70 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-40 disabled:pointer-events-none"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Reset
-                    </button>
-                    <motion.button
-                      onClick={handlePrefsSave}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      disabled={!prefsDirty}
-                      className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-ink text-canvas text-sm font-medium transition-colors hover:bg-ink/90 disabled:opacity-40 disabled:pointer-events-none"
-                    >
-                      {prefsSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                      {prefsSaved ? 'Saved' : 'Save preferences'}
                     </motion.button>
                   </div>
                 </div>

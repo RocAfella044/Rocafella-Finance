@@ -33,8 +33,8 @@ const faqs = [
     a: 'Transfers must be more than NPR 50. Always double-check the recipient number before confirming.',
   },
   {
-    q: 'How do I update my preferences?',
-    a: 'Open Settings from the sidebar to manage your language, appearance, and notification preferences.',
+    q: 'How do I manage my account?',
+    a: 'Open Settings from the sidebar to manage your profile, security, and notification preferences.',
   },
 ];
 

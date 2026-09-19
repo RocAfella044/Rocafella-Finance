@@ -19,17 +19,10 @@ export type DeliveryChannels = {
   push: boolean;
 };
 
-export type LocalePrefs = {
-  language: string;
-  region: string;
-};
-
 type PreferencesState = {
   notifications: NotificationPrefs;
   channels: DeliveryChannels;
-  locale: LocalePrefs;
   submitNotifications: (notifications: NotificationPrefs, channels: DeliveryChannels) => void;
-  submitLocale: (locale: LocalePrefs) => void;
   toggleNotification: (key: keyof NotificationPrefs) => void;
   toggleChannel: (key: keyof DeliveryChannels) => void;
 };
@@ -39,7 +32,6 @@ const STORAGE_KEY = 'rocfin.preferences';
 type Persisted = {
   notifications: NotificationPrefs;
   channels: DeliveryChannels;
-  locale: LocalePrefs;
 };
 
 const defaults: Persisted = {
@@ -60,10 +52,6 @@ const defaults: Persisted = {
     sms: false,
     push: true,
   },
-  locale: {
-    language: 'en',
-    region: 'us',
-  },
 };
 
 function mergeDefaults<T extends object>(defs: T, override: Partial<T> | undefined): T {
@@ -79,7 +67,6 @@ function load(): Persisted {
     return {
       notifications: mergeDefaults(defaults.notifications, parsed.notifications),
       channels: mergeDefaults(defaults.channels, parsed.channels),
-      locale: mergeDefaults(defaults.locale, parsed.locale),
     };
   } catch {
     return defaults;
@@ -95,7 +82,6 @@ function snapshot(state: PreferencesState): Persisted {
   return {
     notifications: state.notifications,
     channels: state.channels,
-    locale: state.locale,
   };
 }
 
@@ -104,18 +90,10 @@ const initial = load();
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   notifications: initial.notifications,
   channels: initial.channels,
-  locale: initial.locale,
 
   submitNotifications: (notifications, channels) => {
-    const next = { ...snapshot(get()), notifications, channels };
     set({ notifications, channels });
-    persist(next);
-  },
-
-  submitLocale: (locale) => {
-    const next = { ...snapshot(get()), locale };
-    set({ locale });
-    persist(next);
+    persist({ ...snapshot(get()), notifications, channels });
   },
 
   toggleNotification: (key) => {
