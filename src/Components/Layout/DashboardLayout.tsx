@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Bell, LogOut, Menu, X, Settings, LifeBuoy, Wallet } from 'lucide-react';
+import { LayoutDashboard, Bell, LogOut, Menu, X, Settings, LifeBuoy, Wallet, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
@@ -12,6 +12,7 @@ import { EASE } from '../../lib/motion';
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { label: 'My Wallet', icon: Wallet, path: '/mywallet' },
+  { label: 'Analytics', icon: BarChart3, path: '/analytics' },
 ];
 
 const settingsItems = [
