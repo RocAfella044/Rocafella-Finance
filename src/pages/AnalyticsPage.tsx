@@ -30,6 +30,7 @@ import {
 import DashboardLayout from '../Components/Layout/DashboardLayout';
 import { useDashboardStore } from '../store/dashboardStore';
 import { FadeIn } from '../lib/FadeIn';
+import { EASE } from '../lib/motion';
 
 const currency = (n: number) =>
   n.toLocaleString('en-NP', { style: 'currency', currency: 'NPR' });
@@ -105,12 +106,16 @@ export default function AnalyticsPage() {
   };
   const incomeDelta = delta('income');
   const expenseDelta = delta('expenses');
+  const rateDelta =
+    rows.length >= 2 && rows[rows.length - 2].income > 0
+      ? rows[rows.length - 1].rate - rows[rows.length - 2].rate
+      : null;
 
   const deltas = [
     incomeDelta,
     expenseDelta,
     incomeDelta !== null && expenseDelta !== null ? incomeDelta - expenseDelta : null,
-    null,
+    rateDelta,
   ];
 
   const topCategory = categoryData[0];
@@ -151,7 +156,7 @@ export default function AnalyticsPage() {
               strokeDasharray="8 6" fill="none"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 2, ease: EASE }}
             />
           </svg>
         </FadeIn>
@@ -346,7 +351,7 @@ export default function AnalyticsPage() {
               <FadeIn delay={0.1}>
                 <div className="h-full rounded-xl border border-line bg-canvas p-5">
                   <div className="flex items-center gap-2 mb-3">
-                    <Flame className="w-4.5 h-4.5 text-clay" />
+                    <TrendingDown className="w-4.5 h-4.5 text-clay" />
                     <h3 className="font-serif text-lg text-ink">Toughest Month</h3>
                   </div>
                   <p className="font-serif text-2xl text-clay">{worstMonth?.month ?? '—'}</p>
@@ -396,7 +401,7 @@ export default function AnalyticsPage() {
                       <YAxis tick={{ fontSize: 12, fill: '#8b8983' }} axisLine={false} tickLine={false} />
                       <Tooltip
                         contentStyle={{ background: '#1c1917', border: 'none', borderRadius: 8, fontSize: 13, color: '#faf7f2' }}
-                        formatter={(value) => [`रु${Number(value).toLocaleString()}`, undefined]}
+                        formatter={(value) => [currency(Number(value)), undefined]}
                       />
                       <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: '#57534e' }} />
                       <Bar dataKey="principal" name="Principal" fill="#718096" radius={[4, 4, 0, 0]} barSize={20} />

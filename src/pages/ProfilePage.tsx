@@ -26,15 +26,13 @@ export default function ProfilePage() {
   const fetchProfile = useProfileStore((s) => s.fetchProfile);
 
   const [copied, setCopied] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [avatar] = useState<string | null>(() => {
     try {
-      setAvatar(window.localStorage.getItem(AVATAR_KEY));
+      return window.localStorage.getItem(AVATAR_KEY);
     } catch {
-      /* ignore */
+      return null;
     }
-  }, []);
+  });
 
   useEffect(() => {
     void fetchProfile();

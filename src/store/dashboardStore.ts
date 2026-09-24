@@ -18,7 +18,6 @@ type Transaction = {
   date: string;
   type: 'income' | 'expense';
 };
-type Recipient = { name: string; email: string | null };
 
 type DbTransaction = {
   id: string;
@@ -29,8 +28,6 @@ type DbTransaction = {
   date: string;
 };
 
-type DbClient = { name: string; email: string | null };
-
 type DbDeposit = { id: string; label: string; amount: number; rate: number; maturity_date: string | null; created_at: string };
 
 type Deposit = { id: string; label: string; amount: number; rate: number; maturity_date: string | null; created_at: string };
@@ -40,7 +37,6 @@ type DashboardState = {
   incomeExpenseData: IncomeExpensePoint[];
   categoryData: CategoryPoint[];
   recentTransactions: Transaction[];
-  recipients: Recipient[];
   deposits: Deposit[];
   loading: boolean;
   error: string | null;
@@ -59,7 +55,7 @@ function monthLabel(date: string): string {
   return d.toLocaleString('en-US', { month: 'short' });
 }
 
-function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbDeposit[]) {
+function buildDashboard(txs: DbTransaction[], deposits: DbDeposit[]) {
   const totals = { income: 0, expenses: 0 };
   const incomeByMonth = new Map<string, number>();
   const expensesByMonth = new Map<string, number>();
@@ -124,8 +120,6 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbD
       type: tx.type,
     }));
 
-  const recipients: Recipient[] = clients.map((c) => ({ name: c.name, email: c.email }));
-
   const depositsFull: Deposit[] = deposits.map((d) => ({
     id: d.id,
     label: d.label,
@@ -135,7 +129,7 @@ function buildDashboard(txs: DbTransaction[], clients: DbClient[], deposits: DbD
     created_at: d.created_at,
   }));
 
-  return { stats, incomeExpenseData, categoryData, recentTransactions, recipients, deposits: depositsFull };
+  return { stats, incomeExpenseData, categoryData, recentTransactions, deposits: depositsFull };
 }
 
 let realtimeChannel: RealtimeChannel | null = null;
@@ -151,11 +145,6 @@ function attachRealtime(fetch: () => Promise<void>) {
     )
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'clients' },
-      () => void fetch(),
-    )
-    .on(
-      'postgres_changes',
       { event: '*', schema: 'public', table: 'deposits' },
       () => void fetch(),
     )
@@ -167,7 +156,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   incomeExpenseData: [],
   categoryData: [],
   recentTransactions: [],
-  recipients: [],
   deposits: [],
   loading: false,
   error: null,
@@ -187,19 +175,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const [txRes, clientRes, depositRes] = await Promise.all([
+      const [txRes, depositRes] = await Promise.all([
         supabase
           .from('transactions')
           .select('id, type, category, description, amount, date')
           .order('date', { ascending: true }),
-        supabase.from('clients').select('name, email').order('name', { ascending: true }),
         supabase.from('deposits').select('id, label, amount, rate, maturity_date, created_at'),
       ]);
 
-      const firstError = [txRes, clientRes, depositRes].find((r) => r.error)?.error;
+      const firstError = [txRes, depositRes].find((r) => r.error)?.error;
       if (firstError) throw firstError;
 
-      const data = buildDashboard(txRes.data ?? [], clientRes.data ?? [], depositRes.data ?? []);
+      const data = buildDashboard(txRes.data ?? [], depositRes.data ?? []);
 
       set({ ...data, loading: false, lastUpdated: new Date().toISOString() });
       attachRealtime(() => get().fetchDashboard());

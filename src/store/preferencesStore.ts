@@ -23,8 +23,6 @@ type PreferencesState = {
   notifications: NotificationPrefs;
   channels: DeliveryChannels;
   submitNotifications: (notifications: NotificationPrefs, channels: DeliveryChannels) => void;
-  toggleNotification: (key: keyof NotificationPrefs) => void;
-  toggleChannel: (key: keyof DeliveryChannels) => void;
 };
 
 const STORAGE_KEY = 'rocfin.preferences';
@@ -94,17 +92,5 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   submitNotifications: (notifications, channels) => {
     set({ notifications, channels });
     persist({ ...snapshot(get()), notifications, channels });
-  },
-
-  toggleNotification: (key) => {
-    const notifications = { ...get().notifications, [key]: !get().notifications[key] };
-    set({ notifications });
-    persist({ ...snapshot(get()), notifications });
-  },
-
-  toggleChannel: (key) => {
-    const channels = { ...get().channels, [key]: !get().channels[key] };
-    set({ channels });
-    persist({ ...snapshot(get()), channels });
   },
 }));
