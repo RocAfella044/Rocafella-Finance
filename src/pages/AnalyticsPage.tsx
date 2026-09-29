@@ -23,7 +23,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   PiggyBank,
-  Trophy,
   Flame,
   Info,
 } from 'lucide-react';
@@ -117,10 +116,6 @@ export default function AnalyticsPage() {
     incomeDelta !== null && expenseDelta !== null ? incomeDelta - expenseDelta : null,
     rateDelta,
   ];
-
-  const topCategory = categoryData[0];
-  const bestMonth = [...rows].sort((a, b) => b.net - a.net)[0];
-  const worstMonth = [...rows].sort((a, b) => a.net - b.net)[0];
 
   const savingsData = rows.map((r) => ({
     month: r.month,
@@ -330,55 +325,6 @@ export default function AnalyticsPage() {
                     })}
                   </div>
                 )}
-              </FadeIn>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <FadeIn delay={0.05}>
-                <div className="h-full rounded-xl border border-line bg-canvas p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Trophy className="w-4.5 h-4.5 text-moss" />
-                    <h3 className="font-serif text-lg text-ink">Best Month</h3>
-                  </div>
-                  <p className="font-serif text-2xl text-moss">{bestMonth?.month ?? '—'}</p>
-                  {bestMonth && (
-                    <p className="mt-1 text-xs text-ink/50">
-                      +{currency(bestMonth.net)} net at {bestMonth.rate.toFixed(1)}% savings rate
-                    </p>
-                  )}
-                </div>
-              </FadeIn>
-              <FadeIn delay={0.1}>
-                <div className="h-full rounded-xl border border-line bg-canvas p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingDown className="w-4.5 h-4.5 text-clay" />
-                    <h3 className="font-serif text-lg text-ink">Toughest Month</h3>
-                  </div>
-                  <p className="font-serif text-2xl text-clay">{worstMonth?.month ?? '—'}</p>
-                  {worstMonth && (
-                    <p className="mt-1 text-xs text-ink/50">
-                      {worstMonth.net >= 0 ? '+' : '-'}{currency(Math.abs(worstMonth.net))} net at {worstMonth.rate.toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-              </FadeIn>
-              <FadeIn delay={0.15}>
-                <div className="h-full rounded-xl border border-line bg-canvas p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Flame className="w-4.5 h-4.5 text-clay" />
-                    <h3 className="font-serif text-lg text-ink">Top Spender</h3>
-                  </div>
-                  {topCategory ? (
-                    <>
-                      <p className="font-serif text-2xl text-ink">{topCategory.name}</p>
-                      <p className="mt-1 text-xs text-ink/50">
-                        {currency(topCategory.value)} — {totalExpenses > 0 ? ((topCategory.value / totalExpenses) * 100).toFixed(1) : 0}% of all spending
-                      </p>
-                    </>
-                  ) : (
-                    <p className="font-serif text-2xl text-ink/30">—</p>
-                  )}
-                </div>
               </FadeIn>
             </div>
 
