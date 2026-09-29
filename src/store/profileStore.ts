@@ -29,7 +29,6 @@ type ProfileState = {
   fetchProfile: () => Promise<void>;
   updateFullName: (fullName: string) => Promise<void>;
   updatePhone: (phone: string) => Promise<void>;
-  resendVerification: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 };
 
@@ -130,23 +129,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ profile: { ...get().profile!, phone }, saving: false });
     } catch (error) {
       set({ saving: false, error: error instanceof Error ? error.message : 'Failed to update phone number.' });
-      throw error;
-    }
-  },
-
-  resendVerification: async () => {
-    const profile = get().profile;
-    if (!profile) return;
-    set({ saving: true, error: null });
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: profile.email,
-      });
-      if (error) throw error;
-      set({ saving: false });
-    } catch (error) {
-      set({ saving: false, error: error instanceof Error ? error.message : 'Failed to resend verification email.' });
       throw error;
     }
   },
