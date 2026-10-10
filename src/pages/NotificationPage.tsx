@@ -106,8 +106,8 @@ export default function NotificationPage() {
     void fetchNotifications();
   }, [fetchNotifications]);
 
-  const displayed = useMemo(() => filteredNotifications(), [notifications, filter, search]);
-  const count = useMemo(() => unreadCount(), [notifications]);
+  const displayed = filteredNotifications();
+  const count = unreadCount();
 
   const stats = useMemo(() => {
     const total = notifications.length;
