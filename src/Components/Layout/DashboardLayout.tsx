@@ -130,7 +130,7 @@ export default function DashboardLayout({ children, title }: { children: React.R
             />
           ))}
 
-          <p className="pt-5 px-3.5 pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/30">
+          <p className="mt-6 pt-6 px-3.5 pb-2 border-t border-canvas/10 font-mono text-[11px] uppercase tracking-[0.2em] text-canvas/30">
             Preferences
           </p>
 
