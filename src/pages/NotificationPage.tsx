@@ -9,8 +9,6 @@ import {
   ArrowRight,
   CreditCard,
   ShoppingCart,
-  Shield,
-  Info,
   Landmark,
   X,
   Loader2,
@@ -23,8 +21,10 @@ import { useNotificationStore, type NotificationType } from '../store/notificati
 import { FadeIn } from '../lib/FadeIn';
 import { EASE } from '../lib/motion';
 
+type DisplayType = Exclude<NotificationType, 'security' | 'system'>;
+
 const typeConfig: Record<
-  NotificationType,
+  DisplayType,
   { icon: typeof Bell; color: string; bg: string; label: string }
 > = {
   transaction: {
@@ -39,18 +39,6 @@ const typeConfig: Record<
     bg: 'bg-sand/10',
     label: 'Order',
   },
-  security: {
-    icon: Shield,
-    color: 'text-clay',
-    bg: 'bg-clay/10',
-    label: 'Security',
-  },
-  system: {
-    icon: Info,
-    color: 'text-ink/60',
-    bg: 'bg-ink/5',
-    label: 'System',
-  },
   deposit: {
     icon: Landmark,
     color: 'text-moss',
@@ -59,13 +47,11 @@ const typeConfig: Record<
   },
 };
 
-const filterTabs: { value: 'all' | 'unread' | NotificationType; label: string }[] = [
+const filterTabs: { value: 'all' | 'unread' | DisplayType; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'unread', label: 'Unread' },
   { value: 'transaction', label: 'Transactions' },
   { value: 'order', label: 'Orders' },
-  { value: 'security', label: 'Security' },
-  { value: 'system', label: 'System' },
   { value: 'deposit', label: 'Deposits' },
 ];
 
@@ -97,7 +83,6 @@ export default function NotificationPage() {
   const clearAll = useNotificationStore((s) => s.clearAll);
   const setFilter = useNotificationStore((s) => s.setFilter);
   const setSearch = useNotificationStore((s) => s.setSearch);
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const filteredNotifications = useNotificationStore((s) => s.filteredNotifications);
 
   const [confirmClear, setConfirmClear] = useState(false);
@@ -106,13 +91,20 @@ export default function NotificationPage() {
     void fetchNotifications();
   }, [fetchNotifications]);
 
-  const displayed = filteredNotifications();
-  const count = unreadCount();
+  const visible = useMemo(
+    () => notifications.filter((n) => n.type === 'transaction' || n.type === 'order' || n.type === 'deposit'),
+    [notifications],
+  );
+
+  const displayed = filteredNotifications().filter(
+    (n) => n.type === 'transaction' || n.type === 'order' || n.type === 'deposit',
+  );
+  const count = visible.filter((n) => !n.read).length;
 
   const stats = useMemo(() => {
-    const total = notifications.length;
-    const unread = notifications.filter((n) => !n.read).length;
-    const byType = notifications.reduce(
+    const total = visible.length;
+    const unread = visible.filter((n) => !n.read).length;
+    const byType = visible.reduce(
       (acc, n) => {
         acc[n.type] = (acc[n.type] ?? 0) + 1;
         return acc;
@@ -120,7 +112,7 @@ export default function NotificationPage() {
       {} as Record<string, number>,
     );
     return { total, unread, byType };
-  }, [notifications]);
+  }, [visible]);
 
   return (
     <DashboardLayout title="Notifications">
@@ -146,10 +138,6 @@ export default function NotificationPage() {
               <div className="rounded-lg bg-moss/10 px-4 py-2.5">
                 <p className="font-serif text-xl text-moss">{stats.byType['transaction'] ?? 0}</p>
                 <p className="text-[11px] font-mono uppercase tracking-wider text-moss/60">Transactions</p>
-              </div>
-              <div className="rounded-lg bg-sand/10 px-4 py-2.5">
-                <p className="font-serif text-xl text-sand">{stats.byType['security'] ?? 0}</p>
-                <p className="text-[11px] font-mono uppercase tracking-wider text-sand/60">Security</p>
               </div>
             </div>
           </div>
@@ -277,7 +265,7 @@ export default function NotificationPage() {
                   const active = filter === tab.value;
                   const tabCount =
                     tab.value === 'all'
-                      ? notifications.length
+                      ? visible.length
                       : tab.value === 'unread'
                         ? count
                         : stats.byType[tab.value] ?? 0;
@@ -328,7 +316,7 @@ export default function NotificationPage() {
             ) : (
               <div className="space-y-2">
                 {displayed.map((notification, i) => {
-                  const config = typeConfig[notification.type];
+                  const config = typeConfig[notification.type as DisplayType];
                   const Icon = config.icon;
                   return (
                     <FadeIn key={notification.id} delay={0.02 * Math.min(i, 15)}>
